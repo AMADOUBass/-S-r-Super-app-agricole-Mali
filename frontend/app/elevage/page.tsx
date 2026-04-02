@@ -20,7 +20,8 @@ const TYPES = [
 export default function PageElevage() {
   const [typeFilter, setTypeFilter] = useState('');
   const { data, isLoading } = useElevage({ type: typeFilter || undefined });
-  const animaux = data?.pages.flatMap((p: { data: unknown[]; pagination: { page: number; totalPages: number } }) => p.data) ?? [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const animaux = (data?.pages as any[])?.flatMap((p: { data: unknown[] }) => p.data) ?? [];
 
   return (
     <div className="min-h-screen bg-surface-2 flex flex-col">
