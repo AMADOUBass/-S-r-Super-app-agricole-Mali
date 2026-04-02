@@ -2,16 +2,14 @@
 // dotenv chargé ICI en premier pour que DATABASE_URL soit dispo à l'import
 
 import 'dotenv/config';
-import { PrismaClient } from '@prisma/client';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { PrismaClient } = require('@prisma/client');
 import { withAccelerate } from '@prisma/extension-accelerate';
 
-const accelerateUrl = process.env.DATABASE_URL;
-
-if (!accelerateUrl) {
+if (!process.env.DATABASE_URL) {
   throw new Error('DATABASE_URL manquant dans .env');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = new PrismaClient({ accelerateUrl } as any).$extends(withAccelerate());
+const prisma = new PrismaClient().$extends(withAccelerate());
 
 export default prisma;

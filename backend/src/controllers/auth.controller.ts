@@ -90,7 +90,7 @@ export const verifierOtp = async (req: Request, res: Response): Promise<void> =>
     const token = jwt.sign(
       { userId: utilisateur.id, telephone: utilisateur.telephone, role: utilisateur.role },
       process.env.JWT_SECRET as string,
-      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+      { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as never }
     );
 
     res.json({
