@@ -11,8 +11,8 @@ const dbUrl = process.env.PRISMA_ACCELERATE_URL || process.env.DATABASE_URL;
 if (!dbUrl) {
   throw new Error('PRISMA_ACCELERATE_URL manquant dans les variables d\'environnement');
 }
-process.env.DATABASE_URL = dbUrl;
 
-const prisma = new PrismaClient().$extends(withAccelerate());
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const prisma = new PrismaClient({ datasourceUrl: dbUrl } as any).$extends(withAccelerate());
 
 export default prisma;
