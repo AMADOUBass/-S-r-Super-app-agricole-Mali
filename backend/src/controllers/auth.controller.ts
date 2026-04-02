@@ -45,8 +45,8 @@ export const inscrire = async (req: Request, res: Response): Promise<void> => {
     res.status(201).json({
       success: true,
       message: 'Code OTP envoyé par SMS',
-      // En développement uniquement — retirer en production
-      ...(process.env.NODE_ENV === 'development' && { _devOtp: code }),
+      // Temporaire pour les tests — retirer quand AfricasTalking live est activé
+      _devOtp: code,
     });
   } catch (err) {
     console.error('[auth/register]', err);
