@@ -41,7 +41,7 @@ export default function PageProduits() {
     region: regionFilter || undefined,
   });
 
-  const produits = data?.pages.flatMap((p: { data: unknown[] }) => p.data) ?? [];
+  const produits = data?.pages.flatMap((p: { data: unknown[]; pagination: { page: number; totalPages: number } }) => p.data) ?? [];
 
   return (
     <div className="min-h-screen bg-surface-2 flex flex-col">

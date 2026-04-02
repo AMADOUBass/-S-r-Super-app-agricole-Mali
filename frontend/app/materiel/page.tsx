@@ -21,7 +21,7 @@ const TYPES = [
 export default function PageMateriel() {
   const [typeFilter, setTypeFilter] = useState('');
   const { data, isLoading } = useMateriel({ type: typeFilter || undefined });
-  const materiels = data?.pages.flatMap((p: { data: unknown[] }) => p.data) ?? [];
+  const materiels = data?.pages.flatMap((p: { data: unknown[]; pagination: { page: number; totalPages: number } }) => p.data) ?? [];
 
   return (
     <div className="min-h-screen bg-surface-2 flex flex-col">
