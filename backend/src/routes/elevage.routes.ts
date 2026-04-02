@@ -13,7 +13,7 @@ import {
   modifierAnimal,
   supprimerAnimal,
 } from '../controllers/elevage.controller';
-import { authentifier } from '../middleware/auth.middleware';
+import { authentifier, autoriser } from '../middleware/auth.middleware';
 import { valider } from '../middleware/validate.middleware';
 import { z } from 'zod';
 
@@ -35,8 +35,8 @@ const schemaAnimal = z.object({
 
 router.get('/', listerAnimaux);
 router.get('/:id', getAnimal);
-router.post('/', authentifier, valider(schemaAnimal), creerAnimal);
-router.put('/:id', authentifier, valider(schemaAnimal.partial()), modifierAnimal);
+router.post('/', authentifier, autoriser('AGRICULTEUR', 'ELEVEUR'), valider(schemaAnimal), creerAnimal);
+router.put('/:id', authentifier, autoriser('AGRICULTEUR', 'ELEVEUR'), valider(schemaAnimal.partial()), modifierAnimal);
 router.delete('/:id', authentifier, supprimerAnimal);
 
 export default router;

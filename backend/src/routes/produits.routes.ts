@@ -14,7 +14,7 @@ import {
   modifierProduit,
   supprimerProduit,
 } from '../controllers/produits.controller';
-import { authentifier } from '../middleware/auth.middleware';
+import { authentifier, autoriser } from '../middleware/auth.middleware';
 import { valider } from '../middleware/validate.middleware';
 import { uploadPhoto } from '../services/cloudinary.service';
 import { z } from 'zod';
@@ -40,8 +40,8 @@ const schemaProduit = z.object({
 router.get('/', listerProduits);
 router.get('/mes-annonces', authentifier, getMesAnnonces); // avant /:id
 router.get('/:id', getProduit);
-router.post('/', authentifier, uploadPhoto, valider(schemaProduit), creerProduit);
-router.put('/:id', authentifier, valider(schemaProduit.partial()), modifierProduit);
+router.post('/', authentifier, autoriser('AGRICULTEUR'), uploadPhoto, valider(schemaProduit), creerProduit);
+router.put('/:id', authentifier, autoriser('AGRICULTEUR'), valider(schemaProduit.partial()), modifierProduit);
 router.delete('/:id', authentifier, supprimerProduit);
 
 export default router;

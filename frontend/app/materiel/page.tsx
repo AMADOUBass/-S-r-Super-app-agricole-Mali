@@ -7,6 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { CarteAnnonce } from '@/components/ui/CarteAnnonce';
 import { useMateriel } from '@/lib/queries';
+import useStore from '@/store/useStore';
 
 const TYPES = [
   { value: '', label: 'Tout le matériel' },
@@ -21,6 +22,8 @@ const TYPES = [
 export default function PageMateriel() {
   const [typeFilter, setTypeFilter] = useState('');
   const { data, isLoading } = useMateriel({ type: typeFilter || undefined });
+  const utilisateur = useStore(s => s.utilisateur);
+  const estAgriculteur = utilisateur?.role === 'AGRICULTEUR';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const materiels = (data?.pages as any[])?.flatMap((p: { data: unknown[] }) => p.data) ?? [];
 
@@ -72,9 +75,11 @@ export default function PageMateriel() {
             <p className="text-sm text-muted-fg">
               {isLoading ? 'Chargement...' : `${materiels.length} matériel${materiels.length > 1 ? 's' : ''} disponible${materiels.length > 1 ? 's' : ''}`}
             </p>
-            <Link href="/materiel/publier" className="btn btn-sm btn-amber">
-              + Publier
-            </Link>
+            {estAgriculteur && (
+              <Link href="/materiel/publier" className="btn btn-sm btn-amber">
+                + Publier
+              </Link>
+            )}
           </div>
 
           {isLoading ? (

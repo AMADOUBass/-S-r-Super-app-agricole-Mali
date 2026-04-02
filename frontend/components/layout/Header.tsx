@@ -52,7 +52,7 @@ export function Header({ titre, retour }: HeaderProps) {
     router.push('/');
   };
 
-  const lienTableau = utilisateur?.role === 'AGRICULTEUR' ? '/tableau-bord' : '/';
+  const lienTableau = utilisateur?.role === 'AGRICULTEUR' ? '/tableau-bord' : '/mon-espace';
 
   return (
     <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-xl border-b border-black/[0.06] shadow-xs">

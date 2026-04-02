@@ -15,9 +15,43 @@ interface Commande {
   vendeur: { nom: string; telephone: string };
 }
 
+const MOYENS_PAIEMENT = [
+  {
+    id: 'cinetpay',
+    label: 'CinetPay',
+    description: 'Orange Money, Moov, carte bancaire',
+    color: 'border-orange-300 bg-orange-50',
+    activeColor: 'border-orange-500 bg-orange-50',
+    badge: null,
+    emoji: '💳',
+    disponible: true,
+  },
+  {
+    id: 'wave',
+    label: 'Wave',
+    description: 'Paiement instantané',
+    color: 'border-border bg-white',
+    activeColor: 'border-blue-400 bg-blue-50',
+    badge: 'Bientôt',
+    emoji: '🌊',
+    disponible: false,
+  },
+  {
+    id: 'especes',
+    label: 'À la livraison',
+    description: 'Cash ou transfert direct',
+    color: 'border-border bg-white',
+    activeColor: 'border-primary-400 bg-primary-50',
+    badge: 'Bientôt',
+    emoji: '🤝',
+    disponible: false,
+  },
+];
+
 export default function PagePayerCommande() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
+  const [moyenPaiement, setMoyenPaiement] = useState('cinetpay');
   const [commande, setCommande] = useState<Commande | null>(null);
   const [chargement, setChargement] = useState(true);
   const [paiementEnCours, setPaiementEnCours] = useState(false);
@@ -145,13 +179,50 @@ export default function PagePayerCommande() {
           </div>
         </div>
 
-        {/* Info paiement */}
+        {/* Choix moyen de paiement */}
         {commande.statut === 'EN_ATTENTE' && (
-          <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 text-sm text-blue-800">
-            <p className="font-semibold mb-1">💳 Paiement sécurisé</p>
-            <p className="text-xs leading-relaxed">
-              Le paiement est conservé en escrow et libéré à l'agriculteur uniquement après confirmation de livraison.
-            </p>
+          <div className="card p-4">
+            <p className="text-xs font-semibold text-muted-fg uppercase tracking-wider mb-3">Moyen de paiement</p>
+            <div className="space-y-2">
+              {MOYENS_PAIEMENT.map(m => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => m.disponible && setMoyenPaiement(m.id)}
+                  disabled={!m.disponible}
+                  className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 transition-all text-left ${
+                    moyenPaiement === m.id && m.disponible
+                      ? m.activeColor + ' shadow-sm'
+                      : m.disponible
+                        ? m.color + ' hover:border-border-strong'
+                        : 'border-border bg-surface-2 opacity-60 cursor-not-allowed'
+                  }`}
+                >
+                  <span className="text-2xl">{m.emoji}</span>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-sm text-foreground">{m.label}</span>
+                      {m.badge && (
+                        <span className="text-xs font-semibold bg-surface-3 text-muted-fg px-2 py-0.5 rounded-full">
+                          {m.badge}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-fg">{m.description}</p>
+                  </div>
+                  {moyenPaiement === m.id && m.disponible && (
+                    <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    </div>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex items-center gap-2 mt-3 text-xs text-muted-fg">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
+              Paiement sécurisé — libéré après confirmation de livraison
+            </div>
           </div>
         )}
 

@@ -7,6 +7,7 @@ import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { CarteAnnonce } from '@/components/ui/CarteAnnonce';
 import { useProduits } from '@/lib/queries';
+import useStore from '@/store/useStore';
 
 const TYPES = [
   { label: 'Tous', value: '' },
@@ -35,6 +36,8 @@ const REGIONS = [
 export default function PageProduits() {
   const [typeFilter, setTypeFilter] = useState('');
   const [regionFilter, setRegionFilter] = useState('');
+  const utilisateur = useStore(s => s.utilisateur);
+  const estAgriculteur = utilisateur?.role === 'AGRICULTEUR';
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useProduits({
     type: typeFilter || undefined,
@@ -73,11 +76,13 @@ export default function PageProduits() {
                   <h1 className="text-2xl md:text-4xl font-black text-white drop-shadow">Récoltes</h1>
                   <p className="text-white/65 text-xs md:text-sm mt-0.5">Achetez directement chez l'agriculteur</p>
                 </div>
-                <Link href="/vendre"
-                  className="flex-shrink-0 inline-flex items-center gap-1.5 bg-white text-primary-800 font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-                  Publier
-                </Link>
+                {estAgriculteur && (
+                  <Link href="/vendre"
+                    className="flex-shrink-0 inline-flex items-center gap-1.5 bg-white text-primary-800 font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Publier
+                  </Link>
+                )}
               </div>
             </div>
           </div>

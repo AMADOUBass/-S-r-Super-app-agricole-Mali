@@ -93,7 +93,7 @@ export default function TableauBordAgriculteur() {
                 <span className="text-xs font-bold text-primary-700 text-center">Nouvelle annonce</span>
               </Link>
               <Link
-                href="/produits"
+                href="/commandes"
                 className="flex flex-col items-center gap-2 p-4 bg-amber-50 border border-amber-200 rounded-xl hover:bg-amber-100 transition-colors group"
               >
                 <div className="w-10 h-10 rounded-xl bg-amber-500 flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">

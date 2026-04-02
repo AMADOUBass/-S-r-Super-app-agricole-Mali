@@ -15,7 +15,7 @@ import {
   supprimerMateriel,
   louerMateriel,
 } from '../controllers/materiel.controller';
-import { authentifier } from '../middleware/auth.middleware';
+import { authentifier, autoriser } from '../middleware/auth.middleware';
 import { valider } from '../middleware/validate.middleware';
 import { z } from 'zod';
 
@@ -43,8 +43,8 @@ const schemaLocation = z.object({
 
 router.get('/', listerMateriel);
 router.get('/:id', getMateriel);
-router.post('/', authentifier, valider(schemaMateriel), creerMateriel);
-router.put('/:id', authentifier, valider(schemaMateriel.partial()), modifierMateriel);
+router.post('/', authentifier, autoriser('AGRICULTEUR'), valider(schemaMateriel), creerMateriel);
+router.put('/:id', authentifier, autoriser('AGRICULTEUR'), valider(schemaMateriel.partial()), modifierMateriel);
 router.delete('/:id', authentifier, supprimerMateriel);
 router.post('/:id/louer', authentifier, valider(schemaLocation), louerMateriel);
 
