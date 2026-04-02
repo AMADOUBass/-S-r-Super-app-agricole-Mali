@@ -36,17 +36,17 @@ const envoyerPrixDuMatin = async (): Promise<void> => {
     });
 
     // Grouper par région
-    const parRegion = agriculteurs.reduce<Record<string, string[]>>((acc, user) => {
-      if (!acc[user.region]) acc[user.region] = [];
-      acc[user.region].push(user.telephone);
-      return acc;
-    }, {});
+    const parRegion: Record<string, string[]> = {};
+    for (const user of agriculteurs) {
+      if (!parRegion[user.region]) parRegion[user.region] = [];
+      parRegion[user.region].push(user.telephone);
+    }
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
     // Pour chaque région, récupérer les prix et envoyer le SMS
-    for (const [region, telephones] of Object.entries(parRegion)) {
+    for (const [region, telephones] of Object.entries(parRegion) as [string, string[]][]) {
       const prix = await prisma.prixMarche.findMany({
         where: { region: region as never, date: { gte: today } },
         orderBy: { produit: 'asc' },

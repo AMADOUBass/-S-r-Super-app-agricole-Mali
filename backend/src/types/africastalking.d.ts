@@ -12,8 +12,13 @@ declare module 'africastalking' {
     }): Promise<{ SMSMessageData: { Recipients: Array<{ status: string; number: string }> } }>;
   }
 
+  interface VoiceService {
+    call(params: { callFrom: string; callTo: string[] }): Promise<unknown>;
+  }
+
   interface ATClient {
     SMS: SMSService;
+    VOICE: VoiceService;
   }
 
   function AfricasTalking(options: ATOptions): ATClient;
