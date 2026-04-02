@@ -13,6 +13,6 @@ if (!dbUrl) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-const prisma = new PrismaClient({ datasourceUrl: dbUrl } as any).$extends(withAccelerate());
+const prisma = new PrismaClient({ accelerateUrl: dbUrl } as any).$extends(withAccelerate());
 
 export default prisma;
