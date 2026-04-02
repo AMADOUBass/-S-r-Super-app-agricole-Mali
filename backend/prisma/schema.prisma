@@ -1,0 +1,268 @@
+// Schéma Prisma pour Sɔrɔ — super-app agricole Mali
+// Base de données : PostgreSQL hébergée sur Supabase
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ─────────────────────────────────────────────────────────────
+// UTILISATEUR
+// ─────────────────────────────────────────────────────────────
+model Utilisateur {
+  id          String   @id @default(cuid())
+  telephone   String   @unique                   // +22360000000
+  nom         String
+  role        Role     @default(AGRICULTEUR)
+  commune     String
+  region      Region
+  orangeMoney String?                            // numéro Orange Money si différent
+  photoUrl    String?
+  actif       Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  produits    Produit[]    @relation("AgriculteurProduits")
+  achats      Commande[]   @relation("AcheteurCommandes")
+  ventes      Commande[]   @relation("VendeurCommandes")
+  materiels   Materiel[]
+  locations   Location[]
+  animaux     Animal[]
+
+  @@map("utilisateurs")
+}
+
+enum Role {
+  AGRICULTEUR
+  ACHETEUR
+  BOUTIQUE
+  ADMIN
+}
+
+enum Region {
+  BAMAKO
+  KAYES
+  KOULIKORO
+  SIKASSO
+  SEGOU
+  MOPTI
+  TOMBOUCTOU
+  GAO
+  KIDAL
+  MENAKA
+  TAOUDENIT
+}
+
+// ─────────────────────────────────────────────────────────────
+// PRODUIT (récoltes agricoles)
+// ─────────────────────────────────────────────────────────────
+model Produit {
+  id          String      @id @default(cuid())
+  type        TypeProduit
+  quantiteKg  Float                              // quantité disponible en kg
+  prixFcfa    Int                                // prix par kg en FCFA
+  description String?
+  photoUrl    String?
+  disponible  Boolean     @default(true)
+  commune     String
+  region      Region
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  agriculteurId String
+  agriculteur   Utilisateur @relation("AgriculteurProduits", fields: [agriculteurId], references: [id])
+  commandes     Commande[]
+
+  @@map("produits")
+}
+
+enum TypeProduit {
+  MIL
+  SORGHO
+  MAIS
+  RIZ
+  ARACHIDE
+  NIEBE
+  SESAME
+  COTON
+  MANGUE
+  OIGNON
+  TOMATE
+  KARITE
+  GOMBO
+  PATATE_DOUCE
+  IGNAME
+}
+
+// ─────────────────────────────────────────────────────────────
+// COMMANDE
+// ─────────────────────────────────────────────────────────────
+model Commande {
+  id           String        @id @default(cuid())
+  quantiteKg   Float
+  montantFcfa  Int                               // montant total
+  commission   Int                               // 3% du montant (payé par l'acheteur)
+  statut       StatutCommande @default(EN_ATTENTE)
+  paiementRef  String?                           // référence CinetPay
+  paiementStatut String?                         // statut retour webhook CinetPay
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  produitId    String
+  produit      Produit      @relation(fields: [produitId], references: [id])
+  acheteurId   String
+  acheteur     Utilisateur  @relation("AcheteurCommandes", fields: [acheteurId], references: [id])
+  vendeurId    String
+  vendeur      Utilisateur  @relation("VendeurCommandes", fields: [vendeurId], references: [id])
+
+  @@map("commandes")
+}
+
+enum StatutCommande {
+  EN_ATTENTE
+  PAIEMENT_INITIE
+  PAYE
+  CONFIRME
+  LIVRE
+  ANNULE
+}
+
+// ─────────────────────────────────────────────────────────────
+// MATÉRIEL (location)
+// ─────────────────────────────────────────────────────────────
+model Materiel {
+  id          String        @id @default(cuid())
+  type        TypeMateriel
+  description String?
+  prixJour    Int                                // prix par jour en FCFA
+  caution     Int                                // caution bloquée en escrow
+  photoUrl    String?
+  disponible  Boolean       @default(true)
+  commune     String
+  region      Region
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  proprietaireId String
+  proprietaire   Utilisateur @relation(fields: [proprietaireId], references: [id])
+  locations      Location[]
+
+  @@map("materiels")
+}
+
+enum TypeMateriel {
+  TRACTEUR
+  MOTOPOMPE
+  BATTEUSE
+  CHARRUE
+  SEMOIR
+  SILO
+  REMORQUE
+  PULVERISATEUR
+  MOISSONNEUSE
+}
+
+// ─────────────────────────────────────────────────────────────
+// LOCATION
+// ─────────────────────────────────────────────────────────────
+model Location {
+  id           String        @id @default(cuid())
+  dateDebut    DateTime
+  dateFin      DateTime
+  montantFcfa  Int
+  commission   Int                               // 5% du montant
+  caution      Int
+  statut       StatutLocation @default(EN_ATTENTE)
+  paiementRef  String?
+  contratPdfUrl String?                          // URL du contrat PDF généré
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  // Relations
+  materielId   String
+  materiel     Materiel     @relation(fields: [materielId], references: [id])
+  locataireId  String
+  locataire    Utilisateur  @relation(fields: [locataireId], references: [id])
+
+  @@map("locations")
+}
+
+enum StatutLocation {
+  EN_ATTENTE
+  CAUTION_BLOQUEE
+  EN_COURS
+  TERMINE
+  ANNULE
+}
+
+// ─────────────────────────────────────────────────────────────
+// ANIMAL (élevage)
+// ─────────────────────────────────────────────────────────────
+model Animal {
+  id          String      @id @default(cuid())
+  type        TypeAnimal
+  race        String?
+  age         Int?                               // en mois
+  poidsKg     Float?
+  prixFcfa    Int
+  description String?
+  photoUrl    String?
+  vendu       Boolean     @default(false)
+  commune     String
+  region      Region
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  vendeurId   String
+  vendeur     Utilisateur @relation(fields: [vendeurId], references: [id])
+
+  @@map("animaux")
+}
+
+enum TypeAnimal {
+  BOEUF
+  MOUTON
+  CHEVRE
+  VOLAILLE
+  PORC
+  ANE
+  CHEVAL
+  CHAMEAU
+}
+
+// ─────────────────────────────────────────────────────────────
+// PRIX MARCHÉ (mis à jour chaque jour par cron job)
+// ─────────────────────────────────────────────────────────────
+model PrixMarche {
+  id       String      @id @default(cuid())
+  produit  TypeProduit
+  region   Region
+  prixKg   Int                                   // prix en FCFA par kg
+  source   String?                               // source de la donnée
+  date     DateTime    @default(now())
+
+  @@unique([produit, region, date])
+  @@map("prix_marche")
+}
+
+// ─────────────────────────────────────────────────────────────
+// OTP (vérification numéro de téléphone)
+// ─────────────────────────────────────────────────────────────
+model Otp {
+  id        String   @id @default(cuid())
+  telephone String
+  code      String
+  expiresAt DateTime
+  utilise   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("otps")
+}
