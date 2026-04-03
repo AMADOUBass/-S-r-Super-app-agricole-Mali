@@ -106,11 +106,15 @@ export default function PageAdmin() {
   const [searchUsers, setSearchUsers] = useState('');
   const [filtreStatut, setFiltreStatut] = useState('');
   const [filtreRole, setFiltreRole] = useState('');
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
+    if (!mounted) return;
     if (!token) { router.push('/connexion'); return; }
     if (utilisateur && utilisateur.role !== 'ADMIN') { router.push('/'); }
-  }, [token, utilisateur, router]);
+  }, [mounted, token, utilisateur, router]);
 
   // ── Queries ─────────────────────────────────────────────────
 
@@ -188,7 +192,7 @@ export default function PageAdmin() {
   const materiels = materielData?.data ?? [];
   const animaux = animauxData?.data ?? [];
 
-  if (!utilisateur || utilisateur.role !== 'ADMIN') return null;
+  if (!mounted || !utilisateur || utilisateur.role !== 'ADMIN') return null;
 
   return (
     <div className="min-h-screen bg-surface-2 flex flex-col">
