@@ -4,7 +4,8 @@
 
 import axios from 'axios';
 
-const IS_SANDBOX = process.env.NODE_ENV !== 'production';
+// FLUTTERWAVE_SANDBOX=true → sandbox | false/absent → production live
+const IS_SANDBOX = process.env.FLUTTERWAVE_SANDBOX !== 'false';
 const API_BASE = IS_SANDBOX
   ? 'https://developersandbox-api.flutterwave.com'
   : 'https://api.flutterwave.com';
