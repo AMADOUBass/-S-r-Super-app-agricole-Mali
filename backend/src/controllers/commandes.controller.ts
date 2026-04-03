@@ -117,7 +117,7 @@ export const getStatutCommande = async (req: AuthRequest, res: Response): Promis
   try {
     const commande = await prisma.commande.findUnique({
       where: { id: req.params.id },
-      select: { id: true, statut: true, acheteurId: true, vendeurId: true },
+      select: { id: true, statut: true, paiementRef: true, acheteurId: true, vendeurId: true },
     });
 
     if (!commande) {
@@ -134,9 +134,9 @@ export const getStatutCommande = async (req: AuthRequest, res: Response): Promis
     }
 
     // Si en cours, vérifier auprès de Flutterwave si paiement passé
-    if (commande.statut === 'PAIEMENT_INITIE' && commande.id) {
+    if (commande.statut === 'PAIEMENT_INITIE' && commande.paiementRef) {
       try {
-        const paiement = await verifierPaiement(commande.id);
+        const paiement = await verifierPaiement(commande.paiementRef);
         if (paiement.status === 'succeeded') {
           await prisma.commande.update({
             where: { id: commande.id },
@@ -198,7 +198,7 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
 
     await prisma.commande.update({
       where: { id: commande.id },
-      data: { statut: 'PAIEMENT_INITIE', paiementRef: paiement.transaction_id },
+      data: { statut: 'PAIEMENT_INITIE', paiementRef: paiement.charge_id },
     });
 
     res.json({ success: true, data: { paymentUrl: paiement.payment_url } });

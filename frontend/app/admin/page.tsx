@@ -373,8 +373,22 @@ export default function PageAdmin() {
         {/* ── Onglet Commandes ── */}
         {onglet === 'commandes' && (
           <div className="space-y-3">
+            <div className="flex gap-2 flex-wrap mb-1">
+              <button
+                onClick={async () => {
+                  if (!confirm('Annuler toutes les commandes bloquées en "Paiement initié" ?')) return;
+                  const bloquees = commandes.filter(c => c.statut === 'PAIEMENT_INITIE');
+                  await Promise.all(bloquees.map(c => api.post(`/commandes/${c.id}/annuler`)));
+                  queryClient.invalidateQueries({ queryKey: ['admin-commandes'] });
+                }}
+                className="px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 transition-all"
+              >
+                🧹 Annuler toutes PAIEMENT_INITIE
+              </button>
+            </div>
+
             <div className="flex gap-2 overflow-x-auto no-scrollbar">
-              {['', 'EN_ATTENTE', 'PAYE', 'LIVRE', 'ANNULE'].map(s => (
+              {['', 'EN_ATTENTE', 'PAIEMENT_INITIE', 'PAYE', 'LIVRE', 'ANNULE'].map(s => (
                 <button
                   key={s}
                   onClick={() => setFiltreStatut(s)}
@@ -412,10 +426,22 @@ export default function PageAdmin() {
                           Vendeur: {c.vendeur.nom} · {c.produit.commune}
                         </p>
                       </div>
-                      <div className="text-right flex-shrink-0">
+                      <div className="text-right flex-shrink-0 flex flex-col items-end gap-1">
                         <div className="font-black text-sm text-foreground">{c.montantFcfa.toLocaleString('fr')} FCFA</div>
                         <div className="text-xs text-muted-fg">+{c.commission.toLocaleString('fr')} comm.</div>
                         <div className="text-xs text-muted-fg">#{c.id.slice(-6).toUpperCase()}</div>
+                        {!['LIVRE', 'ANNULE'].includes(c.statut) && (
+                          <button
+                            onClick={async () => {
+                              if (!confirm(`Annuler la commande #${c.id.slice(-6).toUpperCase()} ?`)) return;
+                              await api.post(`/commandes/${c.id}/annuler`);
+                              queryClient.invalidateQueries({ queryKey: ['admin-commandes'] });
+                            }}
+                            className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-semibold"
+                          >
+                            Annuler
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>

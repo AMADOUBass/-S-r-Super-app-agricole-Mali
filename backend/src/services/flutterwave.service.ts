@@ -114,7 +114,7 @@ export const initierPaiement = async (params: {
   network?: string;          // 'orange' (défaut) | 'moov'
   description: string;
   return_url: string;
-}): Promise<{ payment_url: string; transaction_id: string }> => {
+}): Promise<{ payment_url: string; transaction_id: string; charge_id: string }> => {
   const token = await getAccessToken();
   const traceId = params.transaction_id.slice(-12);
 
@@ -163,7 +163,7 @@ export const initierPaiement = async (params: {
     );
   }
 
-  return { payment_url: paymentUrl, transaction_id: params.transaction_id };
+  return { payment_url: paymentUrl, transaction_id: params.transaction_id, charge_id: data.id };
 };
 
 // ─────────────────────────────────────────────────────────────
