@@ -9,6 +9,7 @@ import { Router } from "express";
 import {
   creerCommande,
   getMesCommandes,
+  getStatutCommande,
   payerCommande,
   confirmerLivraison,
   annulerCommande,
@@ -31,6 +32,7 @@ router.post("/webhooks/flutterwave", webhookFlutterwave);
 
 router.post("/", authentifier, valider(schemaCommande), creerCommande);
 router.get("/mes-commandes", authentifier, getMesCommandes);
+router.get("/:id/statut", authentifier, getStatutCommande);
 router.post("/:id/payer", authentifier, payerCommande);
 router.post("/:id/confirmer", authentifier, confirmerLivraison);
 router.post("/:id/annuler", authentifier, annulerCommande);

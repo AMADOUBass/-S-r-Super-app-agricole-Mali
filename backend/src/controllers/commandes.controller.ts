@@ -111,6 +111,53 @@ export const getMesCommandes = async (req: AuthRequest, res: Response): Promise<
 };
 
 // ─────────────────────────────────────────────────────────────
+// GET /commandes/:id/statut — polling frontend pour vérifier le statut
+// ─────────────────────────────────────────────────────────────
+export const getStatutCommande = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const commande = await prisma.commande.findUnique({
+      where: { id: req.params.id },
+      select: { id: true, statut: true, acheteurId: true, vendeurId: true },
+    });
+
+    if (!commande) {
+      res.status(404).json({ success: false, error: 'Commande introuvable' });
+      return;
+    }
+
+    const estConcerne =
+      commande.acheteurId === req.user!.userId ||
+      commande.vendeurId === req.user!.userId;
+    if (!estConcerne) {
+      res.status(403).json({ success: false, error: 'Non autorisé' });
+      return;
+    }
+
+    // Si en cours, vérifier auprès de Flutterwave si paiement passé
+    if (commande.statut === 'PAIEMENT_INITIE' && commande.id) {
+      try {
+        const paiement = await verifierPaiement(commande.id);
+        if (paiement.status === 'succeeded') {
+          await prisma.commande.update({
+            where: { id: commande.id },
+            data: { statut: 'PAYE' },
+          });
+          res.json({ success: true, statut: 'PAYE' });
+          return;
+        }
+      } catch {
+        // Flutterwave ne connaît pas encore ce paiement — pas grave
+      }
+    }
+
+    res.json({ success: true, statut: commande.statut });
+  } catch (err) {
+    console.error('[commandes/statut]', err);
+    res.status(500).json({ success: false, error: 'Erreur' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
 // POST /commandes/:id/payer
 // ─────────────────────────────────────────────────────────────
 export const payerCommande = async (req: AuthRequest, res: Response): Promise<void> => {

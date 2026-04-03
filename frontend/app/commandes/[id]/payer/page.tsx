@@ -113,6 +113,21 @@ export default function PagePayerCommande() {
       .finally(() => setChargement(false));
   }, [id]);
 
+  // Auto-polling quand paiement en cours — vérifie toutes les 5s pendant 3 min
+  useEffect(() => {
+    if (commande?.statut !== 'PAIEMENT_INITIE') return;
+    const interval = setInterval(async () => {
+      try {
+        const res = await api.get(`/commandes/${id}/statut`);
+        if (res.data.statut && res.data.statut !== commande.statut) {
+          setCommande(c => c ? { ...c, statut: res.data.statut } : c);
+        }
+      } catch { /* ignore */ }
+    }, 5000);
+    const timeout = setTimeout(() => clearInterval(interval), 3 * 60 * 1000);
+    return () => { clearInterval(interval); clearTimeout(timeout); };
+  }, [commande?.statut, id]);
+
   const initierPaiement = async () => {
     setPaiementEnCours(true);
     try {
@@ -373,6 +388,21 @@ export default function PagePayerCommande() {
                   Payer {total.toLocaleString('fr')} FCFA
                 </>
               )}
+            </button>
+          )}
+
+          {commande.statut === 'PAIEMENT_INITIE' && (
+            <button
+              onClick={async () => {
+                try {
+                  const res = await api.get(`/commandes/${id}/statut`);
+                  if (res.data.statut) setCommande(c => c ? { ...c, statut: res.data.statut } : c);
+                } catch { /* ignore */ }
+              }}
+              className="btn btn-secondary w-full gap-2"
+            >
+              <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+              Vérifier mon paiement
             </button>
           )}
 
