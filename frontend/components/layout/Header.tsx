@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
 import useStore from '@/store/useStore';
@@ -20,12 +21,14 @@ const navLinks = [
 
 function Logo() {
   return (
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-      <rect width="32" height="32" rx="10" fill="#15803d"/>
-      <path d="M21 10.5 Q21 8 17.5 8 Q13 8 13 11.5 Q13 15 17.5 15.5 Q22 16 22 20 Q22 24.5 17.5 24.5 Q13 24.5 11 22.5"
-        stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M21 10.5 Q24 8.5 25 10 Q24 11.5 21 10.5Z" fill="#4ade80"/>
-    </svg>
+    <Image
+      src="/images/logo-soro.png"
+      alt="Sɔrɔ"
+      width={36}
+      height={36}
+      className="object-contain"
+      priority
+    />
   );
 }
 
@@ -74,7 +77,7 @@ export function Header({ titre, retour }: HeaderProps) {
           ) : (
             <Link href="/" className="flex items-center gap-2.5 group">
               <div className="transition-transform group-hover:scale-105 duration-200"><Logo /></div>
-              <span className="font-black text-lg text-foreground tracking-tight">Sɔrɔ</span>
+              <span className="font-black text-lg text-foreground tracking-tight hidden sm:inline">Sɔrɔ</span>
             </Link>
           )}
 

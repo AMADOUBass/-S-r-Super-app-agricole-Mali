@@ -2,19 +2,13 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import useStore from '@/store/useStore';
 
 function Logo() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-      <rect width="32" height="32" rx="10" fill="#15803d"/>
-      <path d="M21 10.5 Q21 8 17.5 8 Q13 8 13 11.5 Q13 15 17.5 15.5 Q22 16 22 20 Q22 24.5 17.5 24.5 Q13 24.5 11 22.5"
-        stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M21 10.5 Q24 8.5 25 10 Q24 11.5 21 10.5Z" fill="#4ade80"/>
-    </svg>
-  );
+  return <Image src="/images/logo-soro.png" alt="Sɔrɔ" width={34} height={34} className="object-contain" priority />;
 }
 
 export default function PageVerification() {

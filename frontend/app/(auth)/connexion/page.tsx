@@ -2,20 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { api } from '@/lib/api';
 import useStore from '@/store/useStore';
-
-function Logo() {
-  return (
-    <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
-      <rect width="32" height="32" rx="10" fill="#15803d"/>
-      <path d="M21 10.5 Q21 8 17.5 8 Q13 8 13 11.5 Q13 15 17.5 15.5 Q22 16 22 20 Q22 24.5 17.5 24.5 Q13 24.5 11 22.5"
-        stroke="white" strokeWidth="2.2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-      <path d="M21 10.5 Q24 8.5 25 10 Q24 11.5 21 10.5Z" fill="#4ade80"/>
-    </svg>
-  );
-}
 
 export default function PageConnexion() {
   const router = useRouter();
@@ -60,7 +50,7 @@ export default function PageConnexion() {
       {/* Header */}
       <div className="relative z-10 flex items-center justify-between px-5 h-14 bg-white/80 backdrop-blur-xl border-b border-black/[0.06]">
         <Link href="/" className="flex items-center gap-2.5">
-          <Logo />
+          <Image src="/images/logo-soro.png" alt="Sɔrɔ" width={34} height={34} className="object-contain" priority />
           <span className="font-black text-lg text-foreground">Sɔrɔ</span>
         </Link>
       </div>
@@ -68,14 +58,9 @@ export default function PageConnexion() {
       <div className="relative z-10 flex-1 flex items-center justify-center px-4 py-10">
         <div className="w-full max-w-sm animate-slide-up">
 
-          {/* Icône */}
+          {/* Logo */}
           <div className="flex justify-center mb-6">
-            <div className="w-20 h-20 rounded-2xl bg-primary-50 border border-primary-200 flex items-center justify-center shadow-sm">
-              <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#15803d" strokeWidth="1.8" strokeLinecap="round">
-                <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </div>
+            <Image src="/images/logo-soro.png" alt="Sɔrɔ" width={88} height={88} className="object-contain drop-shadow-sm" priority />
           </div>
 
           <h1 className="text-2xl font-black text-foreground text-center mb-1">Se connecter</h1>
