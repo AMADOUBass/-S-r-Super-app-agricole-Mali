@@ -17,7 +17,7 @@ interface SoroState {
   // Authentification
   token: string | null;
   utilisateur: Utilisateur | null;
-  telephone: string;        // stocké temporairement pendant la vérification OTP
+  telephone: string;
 
   // Actions auth
   setToken: (token: string) => void;
@@ -32,6 +32,10 @@ interface SoroState {
   // Mode offline
   estOffline: boolean;
   setEstOffline: (offline: boolean) => void;
+
+  // Hydratation — vrai une fois que localStorage est rechargé
+  _hasHydrated: boolean;
+  setHasHydrated: (v: boolean) => void;
 }
 
 const useStore = create<SoroState>()(
@@ -54,15 +58,21 @@ const useStore = create<SoroState>()(
       // ── Offline ─────────────────────────────────────────────
       estOffline: false,
       setEstOffline: (estOffline) => set({ estOffline }),
+
+      // ── Hydratation ─────────────────────────────────────────
+      _hasHydrated: false,
+      setHasHydrated: (v) => set({ _hasHydrated: v }),
     }),
     {
       name: 'soro-store',
-      // Ne persiste que l'essentiel — pas l'état UI temporaire
       partialize: (state) => ({
         token: state.token,
         utilisateur: state.utilisateur,
         regionSelectee: state.regionSelectee,
       }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

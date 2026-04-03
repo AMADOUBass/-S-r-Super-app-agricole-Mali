@@ -99,6 +99,7 @@ export default function PageAdmin() {
   const router = useRouter();
   const utilisateur = useStore(s => s.utilisateur);
   const token = useStore(s => s.token);
+  const hasHydrated = useStore(s => s._hasHydrated);
   const qc = useQueryClient();
 
   const [onglet, setOnglet] = useState<'annonces' | 'commandes' | 'utilisateurs' | 'materiel' | 'animaux'>('annonces');
@@ -106,15 +107,12 @@ export default function PageAdmin() {
   const [searchUsers, setSearchUsers] = useState('');
   const [filtreStatut, setFiltreStatut] = useState('');
   const [filtreRole, setFiltreRole] = useState('');
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => { setMounted(true); }, []);
 
   useEffect(() => {
-    if (!mounted) return;
+    if (!hasHydrated) return;
     if (!token) { router.push('/connexion'); return; }
     if (utilisateur && utilisateur.role !== 'ADMIN') { router.push('/'); }
-  }, [mounted, token, utilisateur, router]);
+  }, [hasHydrated, token, utilisateur, router]);
 
   // ── Queries ─────────────────────────────────────────────────
 
@@ -192,7 +190,7 @@ export default function PageAdmin() {
   const materiels = materielData?.data ?? [];
   const animaux = animauxData?.data ?? [];
 
-  if (!mounted || !utilisateur || utilisateur.role !== 'ADMIN') return null;
+  if (!hasHydrated || !utilisateur || utilisateur.role !== 'ADMIN') return null;
 
   return (
     <div className="min-h-screen bg-surface-2 flex flex-col">
