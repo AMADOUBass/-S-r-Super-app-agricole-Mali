@@ -39,16 +39,28 @@ export const creerCommande = async (req: AuthRequest, res: Response): Promise<vo
     const montantFcfa = Math.round(produit.prixFcfa * quantiteKg);
     const commission = Math.round(montantFcfa * COMMISSION_ACHETEUR);
 
-    const commande = await prisma.commande.create({
-      data: {
-        produitId,
-        quantiteKg,
-        montantFcfa,
-        commission,
-        acheteurId: req.user!.userId,
-        vendeurId: produit.agriculteurId,
-      },
-    });
+    const nouvelleQuantite = produit.quantiteKg - quantiteKg;
+
+    const [commande] = await prisma.$transaction([
+      prisma.commande.create({
+        data: {
+          produitId,
+          quantiteKg,
+          montantFcfa,
+          commission,
+          acheteurId: req.user!.userId,
+          vendeurId: produit.agriculteurId,
+        },
+      }),
+      prisma.produit.update({
+        where: { id: produitId },
+        data: {
+          quantiteKg: nouvelleQuantite,
+          // Marquer indisponible si stock épuisé
+          disponible: nouvelleQuantite > 0,
+        },
+      }),
+    ]);
 
     // Notifier le vendeur par SMS avec le numéro WhatsApp de l'acheteur
     try {
@@ -223,7 +235,17 @@ export const annulerCommande = async (req: AuthRequest, res: Response): Promise<
       return;
     }
 
-    await prisma.commande.update({ where: { id: commande.id }, data: { statut: 'ANNULE' } });
+    // Restaurer le stock et remettre disponible
+    await prisma.$transaction([
+      prisma.commande.update({ where: { id: commande.id }, data: { statut: 'ANNULE' } }),
+      prisma.produit.update({
+        where: { id: commande.produitId },
+        data: {
+          quantiteKg: { increment: commande.quantiteKg },
+          disponible: true,
+        },
+      }),
+    ]);
     res.json({ success: true, message: 'Commande annulée' });
   } catch (err) {
     console.error('[commandes/annuler]', err);

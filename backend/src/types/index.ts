@@ -79,16 +79,6 @@ export interface SmsSendParams {
   message: string;
 }
 
-export interface CinetPayInitParams {
-  transaction_id: string;
-  amount: number;           // en FCFA
-  currency: 'XOF';
-  customer_name: string;
-  customer_phone_number: string;
-  description: string;
-  return_url: string;
-  notify_url: string;
-}
 
 export interface MeteoResponse {
   commune: string;

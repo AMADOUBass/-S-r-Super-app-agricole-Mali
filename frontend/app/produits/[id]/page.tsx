@@ -38,7 +38,7 @@ export default function PageDetailProduit() {
   const router = useRouter();
   const token = useStore(s => s.token);
   const { data: produit, isLoading } = useProduit(id);
-  const [quantite, setQuantite] = useState(50);
+  const [quantite, setQuantite] = useState(1);
   const [chargement, setChargement] = useState(false);
 
   const commander = async () => {
@@ -139,14 +139,23 @@ export default function PageDetailProduit() {
               </div>
             </div>
 
-            <div className="flex items-center gap-2 bg-primary-50 border border-primary-200 rounded-xl px-4 py-2.5">
-              <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+            {produit.disponible && produit.quantiteKg > 0 ? (
+              <div className="flex items-center gap-2 bg-primary-50 border border-primary-200 rounded-xl px-4 py-2.5">
+                <div className="w-5 h-5 rounded-full bg-primary-600 flex items-center justify-center flex-shrink-0">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                </div>
+                <span className="text-primary-800 font-bold text-sm">
+                  {produit.quantiteKg.toLocaleString('fr')} kg disponibles
+                </span>
               </div>
-              <span className="text-primary-800 font-bold text-sm">
-                {produit.quantiteKg.toLocaleString('fr')} kg disponibles
-              </span>
-            </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-2.5">
+                <div className="w-5 h-5 rounded-full bg-red-500 flex items-center justify-center flex-shrink-0">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </div>
+                <span className="text-red-700 font-bold text-sm">Rupture de stock</span>
+              </div>
+            )}
           </div>
 
           {/* Description */}
@@ -244,8 +253,8 @@ export default function PageDetailProduit() {
         </a>
         <button
           onClick={commander}
-          disabled={chargement}
-          className="flex-1 btn btn-primary min-h-[52px]"
+          disabled={chargement || !produit.disponible || produit.quantiteKg === 0}
+          className="flex-1 btn btn-primary min-h-[52px] disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {chargement ? (
             <>

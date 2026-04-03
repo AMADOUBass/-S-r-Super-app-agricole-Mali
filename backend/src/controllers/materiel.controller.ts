@@ -1,5 +1,5 @@
 // Contrôleur du matériel agricole (location)
-// CRUD + logique de location avec caution escrow CinetPay
+// CRUD + logique de location avec caution escrow
 
 import { Response } from 'express';
 import prisma from '../lib/prisma';
