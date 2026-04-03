@@ -3,7 +3,58 @@
 import { useState } from 'react';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
-import { usePrixDuJour } from '@/lib/queries';
+import { usePrixDuJour, useHistoriquePrix } from '@/lib/queries';
+
+function GraphiquePrix({ produit, region }: { produit: string; region: string }) {
+  const { data, isLoading } = useHistoriquePrix(produit, region);
+
+  if (isLoading) return <div className="h-16 skeleton rounded-xl mx-4 mb-3" />;
+  if (!data || data.length < 2) return (
+    <p className="text-xs text-muted-fg text-center py-3 italic">
+      L'historique se construit jour après jour — revenez demain
+    </p>
+  );
+
+  const min = Math.min(...data.map((d: { prixKg: number }) => d.prixKg));
+  const max = Math.max(...data.map((d: { prixKg: number }) => d.prixKg));
+  const range = max - min || 1;
+  const W = 300; const H = 60;
+
+  const points = data.map((d: { prixKg: number }, i: number) => {
+    const x = (i / (data.length - 1)) * W;
+    const y = H - ((d.prixKg - min) / range) * (H - 8) - 4;
+    return `${x},${y}`;
+  }).join(' ');
+
+  const dernier = data[data.length - 1];
+  const avant = data[data.length - 2];
+  const hausse = dernier.prixKg >= avant.prixKg;
+
+  return (
+    <div className="px-4 pb-3">
+      <div className="flex justify-between text-xs text-muted-fg mb-1">
+        <span>30 derniers jours</span>
+        <span className={`font-bold ${hausse ? 'text-primary-700' : 'text-red-600'}`}>
+          {hausse ? '↑' : '↓'} {dernier.prixKg.toLocaleString('fr')} FCFA/kg
+        </span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-14">
+        <defs>
+          <linearGradient id="grad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={hausse ? '#15803d' : '#dc2626'} stopOpacity="0.15"/>
+            <stop offset="100%" stopColor={hausse ? '#15803d' : '#dc2626'} stopOpacity="0"/>
+          </linearGradient>
+        </defs>
+        <polygon points={`0,${H} ${points} ${W},${H}`} fill="url(#grad)" />
+        <polyline points={points} fill="none" stroke={hausse ? '#15803d' : '#dc2626'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+      <div className="flex justify-between text-xs text-muted-fg mt-0.5">
+        <span>{new Date(data[0].date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+        <span>{new Date(data[data.length - 1].date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
+      </div>
+    </div>
+  );
+}
 
 const REGIONS = ['BAMAKO', 'SIKASSO', 'SEGOU', 'MOPTI', 'KAYES', 'KOULIKORO'];
 
@@ -15,6 +66,7 @@ const EMOJI: Record<string, string> = {
 
 export default function PageMarche() {
   const [region, setRegion] = useState('BAMAKO');
+  const [produitSelectionne, setProduitSelectionne] = useState<string | null>(null);
   const { data: prix, isLoading } = usePrixDuJour(region);
 
   const dateLabel = new Date().toLocaleDateString('fr-FR', {
@@ -75,24 +127,39 @@ export default function PageMarche() {
             /* 1 col mobile → 2 col desktop */
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {prix.map((p: { id: string; produit: string; prixKg: number; date: string }) => (
-                <div key={p.id} className="card flex items-center justify-between px-4 py-3.5 hover:shadow-card-hover transition-shadow">
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{EMOJI[p.produit] || '📦'}</span>
-                    <div>
-                      <div className="font-semibold text-foreground">
-                        {p.produit.charAt(0) + p.produit.slice(1).toLowerCase()}
-                      </div>
-                      <div className="text-xs text-muted-fg">
-                        {new Date(p.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                <div key={p.id} className="card overflow-hidden hover:shadow-card-hover transition-shadow">
+                  <button
+                    onClick={() => setProduitSelectionne(produitSelectionne === p.produit ? null : p.produit)}
+                    className="w-full flex items-center justify-between px-4 py-3.5 text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{EMOJI[p.produit] || '📦'}</span>
+                      <div>
+                        <div className="font-semibold text-foreground">
+                          {p.produit.charAt(0) + p.produit.slice(1).toLowerCase()}
+                        </div>
+                        <div className="text-xs text-muted-fg">
+                          {new Date(p.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-bold text-lg text-primary-700">
-                      {p.prixKg.toLocaleString('fr')}
+                    <div className="flex items-center gap-3">
+                      <div className="text-right">
+                        <div className="font-bold text-lg text-primary-700">
+                          {p.prixKg.toLocaleString('fr')}
+                        </div>
+                        <div className="text-xs text-muted-fg">FCFA/kg</div>
+                      </div>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={`text-muted-fg transition-transform ${produitSelectionne === p.produit ? 'rotate-180' : ''}`}>
+                        <polyline points="6 9 12 15 18 9"/>
+                      </svg>
                     </div>
-                    <div className="text-xs text-muted-fg">FCFA/kg</div>
-                  </div>
+                  </button>
+                  {produitSelectionne === p.produit && (
+                    <div className="border-t border-border/50 bg-surface-2">
+                      <GraphiquePrix produit={p.produit} region={region} />
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

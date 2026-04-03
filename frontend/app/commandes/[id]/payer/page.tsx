@@ -93,6 +93,17 @@ export default function PagePayerCommande() {
     }
   };
 
+  const confirmerReception = async () => {
+    if (!confirm('Confirmer que vous avez bien reçu la marchandise ?')) return;
+    try {
+      await api.post(`/commandes/${id}/confirmer`);
+      setCommande(c => c ? { ...c, statut: 'LIVRE' } : c);
+    } catch (err: unknown) {
+      const error = err as { response?: { data?: { error?: string } } };
+      alert(error.response?.data?.error || 'Erreur lors de la confirmation');
+    }
+  };
+
   if (chargement) return (
     <div className="min-h-screen flex flex-col">
       <Header retour="/produits" />
@@ -251,6 +262,16 @@ export default function PagePayerCommande() {
           {commande.statut === 'EN_ATTENTE' && (
             <button onClick={annuler} className="btn btn-secondary w-full text-red-600 hover:bg-red-50">
               Annuler la commande
+            </button>
+          )}
+
+          {commande.statut === 'PAYE' && (
+            <button
+              onClick={confirmerReception}
+              className="btn w-full btn-lg flex items-center justify-center gap-2 bg-primary-600 hover:bg-primary-700 text-white font-bold rounded-2xl"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              Confirmer la réception
             </button>
           )}
 

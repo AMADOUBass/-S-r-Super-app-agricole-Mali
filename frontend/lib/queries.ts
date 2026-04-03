@@ -8,7 +8,7 @@ import { api } from './api';
 // PRODUITS
 // ─────────────────────────────────────────────────────────────
 
-export const useProduits = (filtres?: { type?: string; region?: string; commune?: string }) => {
+export const useProduits = (filtres?: { type?: string; region?: string; commune?: string; search?: string }) => {
   return useInfiniteQuery({
     queryKey: ['produits', filtres],
     queryFn: async ({ pageParam = 1 }) => {
@@ -50,7 +50,7 @@ export const useMesProduitsActifs = () => {
 // MATÉRIEL
 // ─────────────────────────────────────────────────────────────
 
-export const useMateriel = (filtres?: { type?: string; region?: string }) => {
+export const useMateriel = (filtres?: { type?: string; region?: string; search?: string }) => {
   return useInfiniteQuery({
     queryKey: ['materiel', filtres],
     queryFn: async ({ pageParam = 1 }) => {
@@ -71,7 +71,7 @@ export const useMateriel = (filtres?: { type?: string; region?: string }) => {
 // ÉLEVAGE
 // ─────────────────────────────────────────────────────────────
 
-export const useElevage = (filtres?: { type?: string; region?: string }) => {
+export const useElevage = (filtres?: { type?: string; region?: string; search?: string }) => {
   return useInfiniteQuery({
     queryKey: ['elevage', filtres],
     queryFn: async ({ pageParam = 1 }) => {

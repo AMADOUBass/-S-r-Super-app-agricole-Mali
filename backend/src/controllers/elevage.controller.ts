@@ -11,7 +11,7 @@ import { AuthRequest, ElevageQuery } from '../types';
 // ─────────────────────────────────────────────────────────────
 export const listerAnimaux = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { type, region, page = '1', limit = '20' } = req.query as ElevageQuery;
+    const { type, region, search, page = '1', limit = '20' } = req.query as ElevageQuery;
 
     const pageNum = parseInt(page);
     const limitNum = Math.min(parseInt(limit), 100);
@@ -20,6 +20,13 @@ export const listerAnimaux = async (req: Request, res: Response): Promise<void> 
     const where: Record<string, unknown> = { vendu: false };
     if (type) where.type = type;
     if (region) where.region = region;
+    if (search) {
+      where.OR = [
+        { commune: { contains: search, mode: 'insensitive' } },
+        { race: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     const [animaux, total] = await Promise.all([
       prisma.animal.findMany({

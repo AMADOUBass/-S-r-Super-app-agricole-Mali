@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import jwt from 'jsonwebtoken';
 import { envoyerSms } from '../services/sms.service';
+import { AuthRequest } from '../types';
 
 
 // Génère un code OTP à 6 chiffres
@@ -86,6 +87,11 @@ export const verifierOtp = async (req: Request, res: Response): Promise<void> =>
       return;
     }
 
+    if (!utilisateur.actif) {
+      res.status(403).json({ success: false, error: 'Compte suspendu — contactez le support' });
+      return;
+    }
+
     // Générer le token JWT
     const token = jwt.sign(
       { userId: utilisateur.id, telephone: utilisateur.telephone, role: utilisateur.role },
@@ -145,5 +151,74 @@ export const renvoyerOtp = async (req: Request, res: Response): Promise<void> =>
   } catch (err) {
     console.error('[auth/resend]', err);
     res.status(500).json({ success: false, error: 'Erreur lors du renvoi' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// POST /auth/admin-login
+// ─────────────────────────────────────────────────────────────
+export const connexionAdmin = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, motDePasse } = req.body;
+
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      res.status(503).json({ success: false, error: 'Accès admin non configuré' });
+      return;
+    }
+
+    // Délai fixe anti-brute force (même durée si erreur ou succès)
+    await new Promise(r => setTimeout(r, 800));
+
+    if (email !== adminEmail || motDePasse !== adminPassword) {
+      res.status(401).json({ success: false, error: 'Identifiants incorrects' });
+      return;
+    }
+
+    const token = jwt.sign(
+      { userId: 'admin', telephone: adminEmail, role: 'ADMIN' },
+      process.env.JWT_SECRET as string,
+      { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as never }
+    );
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        utilisateur: {
+          id: 'admin',
+          nom: 'Administrateur',
+          telephone: adminEmail,
+          role: 'ADMIN',
+          region: 'BAMAKO',
+          commune: 'Bamako',
+        },
+      },
+    });
+  } catch (err) {
+    console.error('[auth/admin-login]', err);
+    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// PUT /auth/profil
+// ─────────────────────────────────────────────────────────────
+export const modifierProfil = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { nom, commune, region } = req.body;
+
+    const utilisateur = await prisma.utilisateur.update({
+      where: { id: req.user!.userId },
+      data: { nom, commune, region },
+      select: { id: true, nom: true, telephone: true, role: true, region: true, commune: true },
+    });
+
+    res.json({ success: true, data: utilisateur });
+  } catch (err) {
+    console.error('[auth/profil]', err);
+    res.status(500).json({ success: false, error: 'Erreur lors de la mise à jour' });
   }
 };

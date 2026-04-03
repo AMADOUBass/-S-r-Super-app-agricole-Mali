@@ -36,12 +36,14 @@ const REGIONS = [
 export default function PageProduits() {
   const [typeFilter, setTypeFilter] = useState('');
   const [regionFilter, setRegionFilter] = useState('');
+  const [search, setSearch] = useState('');
   const utilisateur = useStore(s => s.utilisateur);
   const estAgriculteur = utilisateur?.role === 'AGRICULTEUR';
 
   const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useProduits({
     type: typeFilter || undefined,
     region: regionFilter || undefined,
+    search: search || undefined,
   });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -91,6 +93,17 @@ export default function PageProduits() {
         {/* Filtres sticky */}
         <div className="bg-white/90 backdrop-blur-xl border-b border-black/[0.06] sticky top-14 z-20 shadow-xs">
           <div className="max-w-6xl mx-auto px-4 py-3 space-y-2.5">
+            {/* Recherche */}
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-fg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input
+                type="search"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher (commune, description…)"
+                className="w-full pl-8 pr-4 py-2 text-sm rounded-xl border border-border bg-surface-2 outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-100 transition-all"
+              />
+            </div>
             {/* Types */}
             <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {TYPES.map(t => (
@@ -174,7 +187,7 @@ export default function PageProduits() {
               <p className="font-bold text-foreground-3 text-lg">Aucune annonce trouvée</p>
               <p className="text-sm text-muted-fg mt-1 mb-6">Essayez d'autres filtres</p>
               <button
-                onClick={() => { setTypeFilter(''); setRegionFilter(''); }}
+                onClick={() => { setTypeFilter(''); setRegionFilter(''); setSearch(''); }}
                 className="btn btn-secondary btn-sm"
               >
                 Réinitialiser les filtres

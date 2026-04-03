@@ -133,6 +133,12 @@ export default function PageConnexion() {
               </Link>
             </p>
           </div>
+
+          <div className="mt-6 text-center">
+            <Link href="/admin/connexion" className="text-xs text-muted-fg/50 hover:text-muted-fg transition-colors">
+              Accès administration
+            </Link>
+          </div>
         </div>
       </div>
     </div>

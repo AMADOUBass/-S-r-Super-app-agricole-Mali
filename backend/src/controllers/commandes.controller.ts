@@ -50,6 +50,16 @@ export const creerCommande = async (req: AuthRequest, res: Response): Promise<vo
       },
     });
 
+    // Notifier le vendeur par SMS
+    try {
+      await envoyerSms({
+        to: produit.agriculteur.telephone,
+        message: `Sɔrɔ: Nouvelle commande de ${quantiteKg} kg de ${produit.type.toLowerCase()} (${montantFcfa.toLocaleString('fr')} FCFA). Connectez-vous pour voir les détails.`,
+      });
+    } catch (smsErr) {
+      console.error('[commandes/creer] SMS vendeur échoué:', smsErr);
+    }
+
     res.status(201).json({ success: true, data: commande });
   } catch (err) {
     console.error('[commandes/creer]', err);

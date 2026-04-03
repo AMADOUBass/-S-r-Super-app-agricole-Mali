@@ -11,7 +11,7 @@ import { AuthRequest, ProduitsQuery } from '../types';
 // ─────────────────────────────────────────────────────────────
 export const listerProduits = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { type, region, commune, page = '1', limit = '20', minPrix, maxPrix } = req.query as ProduitsQuery;
+    const { type, region, commune, search, page = '1', limit = '20', minPrix, maxPrix } = req.query as ProduitsQuery;
 
     const pageNum = parseInt(page);
     const limitNum = Math.min(parseInt(limit), 100);
@@ -21,6 +21,12 @@ export const listerProduits = async (req: Request, res: Response): Promise<void>
     if (type) where.type = type;
     if (region) where.region = region;
     if (commune) where.commune = { contains: commune, mode: 'insensitive' };
+    if (search) {
+      where.OR = [
+        { commune: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
     if (minPrix || maxPrix) {
       where.prixFcfa = {};
       if (minPrix) (where.prixFcfa as Record<string, number>).gte = parseInt(minPrix);

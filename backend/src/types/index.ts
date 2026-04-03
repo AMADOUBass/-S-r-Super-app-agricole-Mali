@@ -45,6 +45,7 @@ export interface ProduitsQuery {
   type?: string;
   region?: string;
   commune?: string;
+  search?: string;
   page?: string;
   limit?: string;
   minPrix?: string;
@@ -54,6 +55,7 @@ export interface ProduitsQuery {
 export interface ElevageQuery {
   type?: string;
   region?: string;
+  search?: string;
   page?: string;
   limit?: string;
 }
@@ -61,6 +63,7 @@ export interface ElevageQuery {
 export interface MaterielQuery {
   type?: string;
   region?: string;
+  search?: string;
   dateDebut?: string;
   dateFin?: string;
   page?: string;

@@ -18,9 +18,21 @@ const TYPES = [
   { value: 'ANE', label: '🫏 Âne' },
 ];
 
+const REGIONS = [
+  { label: 'Toutes régions', value: '' },
+  { label: 'Bamako', value: 'BAMAKO' },
+  { label: 'Sikasso', value: 'SIKASSO' },
+  { label: 'Ségou', value: 'SEGOU' },
+  { label: 'Mopti', value: 'MOPTI' },
+  { label: 'Kayes', value: 'KAYES' },
+  { label: 'Koulikoro', value: 'KOULIKORO' },
+];
+
 export default function PageElevage() {
   const [typeFilter, setTypeFilter] = useState('');
-  const { data, isLoading } = useElevage({ type: typeFilter || undefined });
+  const [regionFilter, setRegionFilter] = useState('');
+  const [search, setSearch] = useState('');
+  const { data, isLoading } = useElevage({ type: typeFilter || undefined, region: regionFilter || undefined, search: search || undefined });
   const utilisateur = useStore(s => s.utilisateur);
   const estAgriculteur = utilisateur?.role === 'AGRICULTEUR';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -51,7 +63,18 @@ export default function PageElevage() {
         </div>
 
         <div className="bg-white border-b border-border sticky top-14 z-20">
-          <div className="max-w-6xl mx-auto px-4 py-3">
+          <div className="max-w-6xl mx-auto px-4 py-3 space-y-2.5">
+            {/* Recherche */}
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-fg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <input
+                type="search"
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Rechercher (commune, race…)"
+                className="w-full pl-8 pr-4 py-2 text-sm rounded-xl border border-border bg-surface-2 outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition-all"
+              />
+            </div>
             <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {TYPES.map(t => (
                 <button key={t.value}
@@ -63,6 +86,20 @@ export default function PageElevage() {
                   }`}
                 >
                   {t.label}
+                </button>
+              ))}
+            </div>
+            <div className="flex gap-2 overflow-x-auto no-scrollbar">
+              {REGIONS.map(r => (
+                <button key={r.value}
+                  onClick={() => setRegionFilter(r.value)}
+                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition-all ${
+                    regionFilter === r.value
+                      ? 'bg-amber-500 text-white shadow-sm'
+                      : 'bg-white text-muted-fg border border-border hover:bg-surface-2'
+                  }`}
+                >
+                  📍 {r.label}
                 </button>
               ))}
             </div>

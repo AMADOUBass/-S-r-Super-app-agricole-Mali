@@ -52,7 +52,8 @@ export function Header({ titre, retour }: HeaderProps) {
     router.push('/');
   };
 
-  const lienTableau = utilisateur?.role === 'AGRICULTEUR' ? '/tableau-bord' : '/mon-espace';
+  const lienTableau = utilisateur?.role === 'AGRICULTEUR' ? '/tableau-bord' :
+    utilisateur?.role === 'ADMIN' ? '/admin' : '/mon-espace';
 
   return (
     <header className="sticky top-0 z-50 bg-white/85 backdrop-blur-xl border-b border-black/[0.06] shadow-xs">
@@ -131,14 +132,36 @@ export function Header({ titre, retour }: HeaderProps) {
                   </div>
 
                   <div className="py-1.5">
-                    <Link href={lienTableau} onClick={() => setMenuOuvert(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                        <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                      </svg>
-                      Mon espace
-                    </Link>
+                    {utilisateur?.role !== 'ADMIN' && (
+                      <Link href={lienTableau} onClick={() => setMenuOuvert(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        Mon espace
+                      </Link>
+                    )}
+
+                    {utilisateur?.role !== 'ADMIN' && (
+                      <Link href="/mon-profil" onClick={() => setMenuOuvert(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                        </svg>
+                        Mon profil
+                      </Link>
+                    )}
+
+                    {utilisateur?.role === 'ADMIN' && (
+                      <Link href="/admin" onClick={() => setMenuOuvert(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-purple-700 hover:bg-purple-50 transition-colors font-semibold">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                        </svg>
+                        Administration
+                      </Link>
+                    )}
 
                     {utilisateur.role === 'AGRICULTEUR' && (
                       <Link href="/vendre" onClick={() => setMenuOuvert(false)}

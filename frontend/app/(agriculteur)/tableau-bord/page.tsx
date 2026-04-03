@@ -34,7 +34,13 @@ export default function TableauBordAgriculteur() {
     }
   };
 
-  const commandesEnAttente = commandes?.filter((c: { statut: string }) => c.statut === 'EN_ATTENTE') ?? [];
+  type Commande = { statut: string; montantFcfa: number; vendeurId?: string };
+  const mesVentes = (commandes as Commande[] | undefined)?.filter(c =>
+    ['EN_ATTENTE', 'PAIEMENT_INITIE', 'PAYE', 'LIVRE'].includes(c.statut)
+  ) ?? [];
+  const commandesEnAttente = mesVentes.filter(c => c.statut === 'EN_ATTENTE');
+  const commandesPayees = mesVentes.filter(c => ['PAYE', 'LIVRE'].includes(c.statut));
+  const revenuTotal = commandesPayees.reduce((s, c) => s + c.montantFcfa, 0);
   const nbProduits = produits?.length ?? 0;
 
   return (
@@ -73,7 +79,15 @@ export default function TableauBordAgriculteur() {
             </div>
             <div className="card p-4 text-center hover:shadow-card-hover transition-all duration-200">
               <div className="text-4xl font-black text-amber-600 mb-1">{commandesEnAttente.length}</div>
-              <div className="text-xs font-semibold text-muted-fg">Commandes reçues</div>
+              <div className="text-xs font-semibold text-muted-fg">En attente</div>
+            </div>
+            <div className="card p-4 text-center hover:shadow-card-hover transition-all duration-200">
+              <div className="text-4xl font-black text-primary-600 mb-1">{commandesPayees.length}</div>
+              <div className="text-xs font-semibold text-muted-fg">Ventes confirmées</div>
+            </div>
+            <div className="card p-4 text-center hover:shadow-card-hover transition-all duration-200">
+              <div className="text-xl font-black text-amber-700 mb-1">{revenuTotal > 0 ? revenuTotal.toLocaleString('fr') : '—'}</div>
+              <div className="text-xs font-semibold text-muted-fg">FCFA encaissés</div>
             </div>
           </div>
 

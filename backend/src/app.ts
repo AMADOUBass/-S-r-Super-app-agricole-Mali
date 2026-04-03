@@ -16,6 +16,7 @@ import materielRoutes from './routes/materiel.routes';
 import elevageRoutes from './routes/elevage.routes';
 import prixRoutes from './routes/prix.routes';
 import meteoRoutes from './routes/meteo.routes';
+import adminRoutes from './routes/admin.routes';
 
 const app = express();
 
@@ -46,6 +47,7 @@ app.use('/materiel', materielRoutes);
 app.use('/elevage', elevageRoutes);
 app.use('/prix', prixRoutes);
 app.use('/meteo', meteoRoutes);
+app.use('/admin', adminRoutes);
 
 // ─── Santé du serveur ─────────────────────────────────────────
 app.get('/health', (_req, res) => {

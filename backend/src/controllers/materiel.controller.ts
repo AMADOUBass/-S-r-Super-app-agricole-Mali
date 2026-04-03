@@ -12,7 +12,7 @@ const COMMISSION_LOCATION = 0.05; // 5%
 // ─────────────────────────────────────────────────────────────
 export const listerMateriel = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
-    const { type, region, page = '1', limit = '20' } = req.query as MaterielQuery;
+    const { type, region, search, page = '1', limit = '20' } = req.query as MaterielQuery;
 
     const pageNum = parseInt(page);
     const limitNum = Math.min(parseInt(limit), 100);
@@ -21,6 +21,12 @@ export const listerMateriel = async (req: AuthRequest, res: Response): Promise<v
     const where: Record<string, unknown> = { disponible: true };
     if (type) where.type = type;
     if (region) where.region = region;
+    if (search) {
+      where.OR = [
+        { commune: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } },
+      ];
+    }
 
     const [materiels, total] = await Promise.all([
       prisma.materiel.findMany({
