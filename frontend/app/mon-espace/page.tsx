@@ -121,7 +121,7 @@ export default function PageMonEspace() {
                 </Link>
               </div>
               <div className="divide-y divide-border/40">
-                {(mesAchats as Array<{ id: string; produit: { type: string }; montantFcfa: number; commission: number; statut: string }>).slice(0, 3).map(c => (
+                {(mesAchats as unknown as Array<{ id: string; produit: { type: string }; montantFcfa: number; commission: number; statut: string }>).slice(0, 3).map(c => (
                   <Link key={c.id} href={`/commandes/${c.id}/payer`} className="flex items-center justify-between px-5 py-3 hover:bg-surface-2 transition-colors">
                     <span className="text-sm font-medium text-foreground">
                       {c.produit.type.charAt(0) + c.produit.type.slice(1).toLowerCase()}
