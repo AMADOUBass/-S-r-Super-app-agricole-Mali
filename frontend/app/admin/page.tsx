@@ -379,7 +379,7 @@ export default function PageAdmin() {
                   if (!confirm('Annuler toutes les commandes bloquées en "Paiement initié" ?')) return;
                   const bloquees = commandes.filter(c => c.statut === 'PAIEMENT_INITIE');
                   await Promise.all(bloquees.map(c => api.post(`/commandes/${c.id}/annuler`)));
-                  queryClient.invalidateQueries({ queryKey: ['admin-commandes'] });
+                  qc.invalidateQueries({ queryKey: ['admin-commandes'] });
                 }}
                 className="px-3 py-1.5 rounded-full text-xs font-semibold bg-red-100 text-red-700 hover:bg-red-200 transition-all"
               >
@@ -435,7 +435,7 @@ export default function PageAdmin() {
                             onClick={async () => {
                               if (!confirm(`Annuler la commande #${c.id.slice(-6).toUpperCase()} ?`)) return;
                               await api.post(`/commandes/${c.id}/annuler`);
-                              queryClient.invalidateQueries({ queryKey: ['admin-commandes'] });
+                              qc.invalidateQueries({ queryKey: ['admin-commandes'] });
                             }}
                             className="text-[10px] px-2 py-0.5 rounded-full bg-red-50 text-red-600 hover:bg-red-100 transition-colors font-semibold"
                           >
