@@ -37,6 +37,13 @@ const modules = [
     gradient: 'bg-gradient-to-br from-rose-500 to-red-700',
     imageSrc: '/images/betail.png',
   },
+  {
+    href: '/meteo',
+    emoji: '⛅',
+    titre: 'Météo agricole',
+    sousTitre: 'Prévisions 7 jours',
+    gradient: 'bg-gradient-to-br from-sky-500 to-blue-700',
+  },
 ];
 
 const stats = [
@@ -122,7 +129,7 @@ export default function Accueil() {
             </div>
           </div>
 
-          {/* ── 4 Modules ─────────────────────────────────────── */}
+          {/* ── 5 Modules ─────────────────────────────────────── */}
           <section className="mb-12">
             <div className="flex items-center justify-between mb-5">
               <div>
@@ -130,12 +137,18 @@ export default function Accueil() {
                 <h2 className="section-title">Que voulez-vous faire ?</h2>
               </div>
             </div>
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
-              {modules.map((m, i) => (
-                <div key={m.href} className="animate-fade-up" style={{animationDelay:`${i*80}ms`}}>
-                  <GrandBouton {...m} />
-                </div>
-              ))}
+            {/* 4 premiers en grille 2×2, le 5e (météo) pleine largeur */}
+            <div className="space-y-3 md:space-y-4">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+                {modules.slice(0, 4).map((m, i) => (
+                  <div key={m.href} className="animate-fade-up" style={{animationDelay:`${i*80}ms`}}>
+                    <GrandBouton {...m} />
+                  </div>
+                ))}
+              </div>
+              <div className="animate-fade-up" style={{animationDelay:'320ms'}}>
+                <GrandBouton {...modules[4]} sousTitre="Conseils agricoles · Prévisions 7 jours" />
+              </div>
             </div>
           </section>
 

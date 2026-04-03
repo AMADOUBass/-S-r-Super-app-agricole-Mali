@@ -15,6 +15,7 @@ const navLinks = [
   { href: '/materiel', label: 'Matériel' },
   { href: '/elevage', label: 'Élevage' },
   { href: '/marche', label: 'Prix marché' },
+  { href: '/meteo', label: 'Météo' },
 ];
 
 function Logo() {

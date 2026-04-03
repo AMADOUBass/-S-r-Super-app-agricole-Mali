@@ -51,13 +51,16 @@
   }
 
   .btn-primary {
-    @apply btn bg-primary-700 text-white
-           hover:bg-primary-800 hover:-translate-y-0.5
-           shadow-sm hover:shadow-md hover:shadow-primary-900/20;
+    @apply btn text-white hover:-translate-y-0.5
+           shadow-sm hover:shadow-md hover:shadow-primary-900/25;
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 60%, #166534 100%);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #15803d 0%, #166534 60%, #14532d 100%);
   }
 
   .btn-secondary {
-    @apply btn bg-white text-foreground-2 border border-border
+    @apply btn bg-white text-foreground-2 border border-border/80
            hover:bg-surface-2 hover:border-border-strong hover:-translate-y-0.5
            shadow-xs hover:shadow-sm;
   }
@@ -160,6 +163,16 @@
   /* ── No scrollbar ────────────────────────────────────────── */
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ── Stat card premium ─────────────────────────────────── */
+  .stat-card {
+    @apply card p-4 flex flex-col gap-1 hover:shadow-card-hover transition-all duration-200 hover:-translate-y-0.5;
+  }
+
+  /* ── Filter bar premium ────────────────────────────────── */
+  .filter-bar {
+    @apply bg-white/90 backdrop-blur-xl border-b border-black/[0.06] sticky top-14 z-20 shadow-xs;
+  }
 }
 
 @layer utilities {

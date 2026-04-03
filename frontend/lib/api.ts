@@ -33,9 +33,18 @@ api.interceptors.response.use(
   response => response,
   error => {
     if (error.response?.status === 401 && typeof window !== 'undefined') {
-      // Nettoyer le store et rediriger vers l'inscription
-      localStorage.removeItem('soro-store');
-      window.location.href = '/inscription';
+      // Ne rediriger que si un token existait (session expirée)
+      // Si pas de token, c'est une requête anonyme normale — ne pas rediriger
+      try {
+        const state = JSON.parse(localStorage.getItem('soro-store') || '{}');
+        const token = state?.state?.token;
+        if (token) {
+          localStorage.removeItem('soro-store');
+          window.location.href = '/connexion';
+        }
+      } catch {
+        // Ignorer
+      }
     }
     return Promise.reject(error);
   }

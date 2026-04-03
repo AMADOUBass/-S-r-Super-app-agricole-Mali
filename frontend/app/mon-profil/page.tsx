@@ -14,9 +14,10 @@ const REGIONS = [
 
 export default function PageMonProfil() {
   const router = useRouter();
-  const { utilisateur, token, setUtilisateur } = useStore(s => ({
+  const { utilisateur, token, hasHydrated, setUtilisateur } = useStore(s => ({
     utilisateur: s.utilisateur,
     token: s.token,
+    hasHydrated: s._hasHydrated,
     setUtilisateur: s.setUtilisateur,
   }));
 
@@ -27,13 +28,14 @@ export default function PageMonProfil() {
   const [succes, setSucces] = useState(false);
 
   useEffect(() => {
+    if (!hasHydrated) return;
     if (!token) { router.push('/connexion'); return; }
     if (utilisateur) {
       setNom(utilisateur.nom);
       setCommune(utilisateur.commune);
       setRegion(utilisateur.region);
     }
-  }, [token, utilisateur, router]);
+  }, [hasHydrated, token, utilisateur, router]);
 
   const sauvegarder = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -10,7 +10,7 @@ import { useElevage } from '@/lib/queries';
 import useStore from '@/store/useStore';
 
 const TYPES = [
-  { value: '', label: 'Tous les animaux' },
+  { value: '', label: 'Tous' },
   { value: 'MOUTON', label: '🐑 Mouton' },
   { value: 'BOEUF', label: '🐄 Bœuf' },
   { value: 'CHEVRE', label: '🐐 Chèvre' },
@@ -32,7 +32,11 @@ export default function PageElevage() {
   const [typeFilter, setTypeFilter] = useState('');
   const [regionFilter, setRegionFilter] = useState('');
   const [search, setSearch] = useState('');
-  const { data, isLoading } = useElevage({ type: typeFilter || undefined, region: regionFilter || undefined, search: search || undefined });
+  const { data, isLoading, fetchNextPage, hasNextPage, isFetchingNextPage } = useElevage({
+    type: typeFilter || undefined,
+    region: regionFilter || undefined,
+    search: search || undefined,
+  });
   const utilisateur = useStore(s => s.utilisateur);
   const estAgriculteur = utilisateur?.role === 'AGRICULTEUR';
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -44,7 +48,8 @@ export default function PageElevage() {
 
       <main className="flex-1 pb-24 md:pb-8">
 
-        <div className="relative w-full overflow-hidden" style={{ height: 'clamp(120px, 20vw, 220px)' }}>
+        {/* Banner */}
+        <div className="relative w-full overflow-hidden" style={{ height: 'clamp(140px, 22vw, 240px)' }}>
           <Image
             src="/images/betail.png"
             alt="Élevage au Mali"
@@ -53,16 +58,33 @@ export default function PageElevage() {
             priority
             sizes="100vw"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/25 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-rose-950/50 to-transparent" />
           <div className="absolute bottom-0 left-0 right-0">
-            <div className="max-w-6xl mx-auto px-4 pb-4 md:pb-6">
-              <h1 className="text-2xl md:text-4xl font-extrabold text-white drop-shadow">Élevage</h1>
-              <p className="text-white/70 text-xs md:text-sm">Moutons, bœufs, chèvres · Fort avant la Tabaski</p>
+            <div className="max-w-6xl mx-auto px-4 pb-5 md:pb-7">
+              <div className="flex items-end justify-between">
+                <div>
+                  <span className="inline-flex items-center gap-1.5 text-xs font-semibold text-white/70 mb-1">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/></svg>
+                    Marché
+                  </span>
+                  <h1 className="text-2xl md:text-4xl font-black text-white drop-shadow">Élevage</h1>
+                  <p className="text-white/65 text-xs md:text-sm mt-0.5">Moutons, bœufs, chèvres · Fort avant la Tabaski</p>
+                </div>
+                {estAgriculteur && (
+                  <Link href="/elevage/publier"
+                    className="flex-shrink-0 inline-flex items-center gap-1.5 bg-white text-rose-800 font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                    Publier
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </div>
 
-        <div className="bg-white border-b border-border sticky top-14 z-20">
+        {/* Filtres sticky */}
+        <div className="filter-bar">
           <div className="max-w-6xl mx-auto px-4 py-3 space-y-2.5">
             {/* Recherche */}
             <div className="relative">
@@ -75,28 +97,32 @@ export default function PageElevage() {
                 className="w-full pl-8 pr-4 py-2 text-sm rounded-xl border border-border bg-surface-2 outline-none focus:border-rose-500 focus:ring-2 focus:ring-rose-100 transition-all"
               />
             </div>
+            {/* Types */}
             <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {TYPES.map(t => (
-                <button key={t.value}
+                <button
+                  key={t.value}
                   onClick={() => setTypeFilter(t.value)}
-                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold flex-shrink-0 transition-all ${
+                  className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-semibold flex-shrink-0 transition-all duration-200 ${
                     typeFilter === t.value
-                      ? 'bg-rose-600 text-white shadow-sm'
-                      : 'bg-surface-3 text-foreground-3 hover:bg-surface-2'
+                      ? 'bg-rose-600 text-white shadow-sm scale-105'
+                      : 'bg-surface-3 text-foreground-3 hover:bg-surface-2 hover:text-foreground'
                   }`}
                 >
                   {t.label}
                 </button>
               ))}
             </div>
+            {/* Régions */}
             <div className="flex gap-2 overflow-x-auto no-scrollbar">
               {REGIONS.map(r => (
-                <button key={r.value}
+                <button
+                  key={r.value}
                   onClick={() => setRegionFilter(r.value)}
-                  className={`whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition-all ${
+                  className={`whitespace-nowrap px-3.5 py-1.5 rounded-full text-xs font-medium flex-shrink-0 transition-all duration-200 ${
                     regionFilter === r.value
-                      ? 'bg-amber-500 text-white shadow-sm'
-                      : 'bg-white text-muted-fg border border-border hover:bg-surface-2'
+                      ? 'bg-amber-500 text-white shadow-sm scale-105'
+                      : 'bg-white text-muted-fg border border-border hover:bg-surface-2 hover:border-border-strong'
                   }`}
                 >
                   📍 {r.label}
@@ -106,47 +132,77 @@ export default function PageElevage() {
           </div>
         </div>
 
+        {/* Contenu */}
         <div className="max-w-6xl mx-auto px-4 py-5">
-          <div className="flex items-center justify-between mb-4">
-            <p className="text-sm text-muted-fg">
-              {isLoading ? 'Chargement...' : `${animaux.length} animal${animaux.length > 1 ? 'aux' : ''} disponible${animaux.length > 1 ? 's' : ''}`}
+
+          {!isLoading && (
+            <p className="text-sm text-muted-fg mb-4 animate-fade-in">
+              {animaux.length === 0
+                ? 'Aucun animal'
+                : `${animaux.length} animal${animaux.length > 1 ? 'aux' : ''}`}
+              {typeFilter && <span className="font-semibold text-rose-600"> · {typeFilter.toLowerCase()}</span>}
+              {regionFilter && <span className="font-semibold text-amber-600"> · {regionFilter.toLowerCase()}</span>}
             </p>
-            {estAgriculteur && (
-              <Link href="/elevage/publier" className="btn btn-primary btn-sm">
-                + Vendre un animal
-              </Link>
-            )}
-          </div>
+          )}
 
           {isLoading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               {[...Array(6)].map((_, i) => (
-                <div key={i} className="card p-4 animate-pulse flex gap-4">
-                  <div className="w-[72px] h-[72px] rounded-lg bg-surface-3 flex-shrink-0" />
-                  <div className="flex-1 space-y-2">
-                    <div className="h-4 bg-surface-3 rounded w-1/2" />
-                    <div className="h-3 bg-surface-3 rounded w-1/3" />
+                <div key={i} className="card p-3.5 flex gap-3.5" style={{ animationDelay: `${i * 60}ms` }}>
+                  <div className="skeleton w-[76px] h-[76px] flex-shrink-0 rounded-xl" />
+                  <div className="flex-1 space-y-2.5 py-1">
+                    <div className="skeleton h-4 w-1/2" />
+                    <div className="skeleton h-3 w-1/3" />
+                    <div className="skeleton h-3 w-2/3" />
                   </div>
                 </div>
               ))}
             </div>
           ) : animaux.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {animaux.map((a: unknown) => (
-                <CarteAnnonce
+              {animaux.map((a: unknown, i: number) => (
+                <div
                   key={(a as { id: string }).id}
-                  annonce={a as Parameters<typeof CarteAnnonce>[0]['annonce']}
-                  type="animal"
-                />
+                  className="animate-fade-up"
+                  style={{ animationDelay: `${Math.min(i * 50, 400)}ms` }}
+                >
+                  <CarteAnnonce
+                    annonce={a as Parameters<typeof CarteAnnonce>[0]['annonce']}
+                    type="animal"
+                  />
+                </div>
               ))}
             </div>
           ) : (
-            <div className="text-center py-20">
-              <div className="relative w-full max-w-sm mx-auto rounded-xl overflow-hidden mb-5" style={{ aspectRatio: '16/9' }}>
-                <Image src="/images/betail.png" alt="Bétail" fill className="object-cover object-[center_40%] opacity-60" sizes="400px" />
+            <div className="text-center py-20 animate-fade-up">
+              <div className="w-20 h-20 rounded-2xl bg-rose-50 flex items-center justify-center mx-auto mb-4 text-4xl">
+                🐑
               </div>
-              <p className="font-semibold text-foreground-3">Aucun animal disponible</p>
-              <p className="text-sm text-muted-fg mt-1">Revenez bientôt</p>
+              <p className="font-bold text-foreground-3 text-lg">Aucun animal disponible</p>
+              <p className="text-sm text-muted-fg mt-1 mb-6">Essayez d'autres filtres</p>
+              <button
+                onClick={() => { setTypeFilter(''); setRegionFilter(''); setSearch(''); }}
+                className="btn btn-secondary btn-sm"
+              >
+                Réinitialiser les filtres
+              </button>
+            </div>
+          )}
+
+          {hasNextPage && (
+            <div className="text-center mt-8">
+              <button
+                onClick={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="btn btn-secondary"
+              >
+                {isFetchingNextPage ? (
+                  <>
+                    <svg className="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+                    Chargement…
+                  </>
+                ) : 'Charger plus'}
+              </button>
             </div>
           )}
         </div>

@@ -91,7 +91,7 @@ export default function PageProduits() {
         </div>
 
         {/* Filtres sticky */}
-        <div className="bg-white/90 backdrop-blur-xl border-b border-black/[0.06] sticky top-14 z-20 shadow-xs">
+        <div className="filter-bar">
           <div className="max-w-6xl mx-auto px-4 py-3 space-y-2.5">
             {/* Recherche */}
             <div className="relative">

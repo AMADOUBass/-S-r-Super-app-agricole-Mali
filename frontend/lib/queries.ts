@@ -135,11 +135,16 @@ export const useMeteo = (commune: string) => {
 // ─────────────────────────────────────────────────────────────
 
 export const useCommandesVendeur = () => {
+  const token = typeof window !== 'undefined'
+    ? (() => { try { return JSON.parse(localStorage.getItem('soro-store') || '{}')?.state?.token; } catch { return null; } })()
+    : null;
+
   return useQuery({
     queryKey: ['commandes-vendeur'],
     queryFn: async () => {
       const res = await api.get('/commandes/mes-commandes');
       return res.data.data;
     },
+    enabled: !!token,
   });
 };
