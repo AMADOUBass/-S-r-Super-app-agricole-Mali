@@ -1,10 +1,10 @@
 // Contrôleur des commandes
-// Gère la création, le paiement escrow CinetPay et la confirmation de livraison
+// Gère la création, le paiement escrow Flutterwave et la confirmation de livraison
 
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../types';
-import { initierPaiement, verifierPaiement } from '../services/paiement.service';
+import { initierPaiement, verifierPaiement } from '../services/flutterwave.service';
 import { envoyerSms } from '../services/sms.service';
 
 const COMMISSION_ACHETEUR = 0.03; // 3%
@@ -50,11 +50,15 @@ export const creerCommande = async (req: AuthRequest, res: Response): Promise<vo
       },
     });
 
-    // Notifier le vendeur par SMS
+    // Notifier le vendeur par SMS avec le numéro WhatsApp de l'acheteur
     try {
+      const acheteur = await prisma.utilisateur.findUnique({
+        where: { id: req.user!.userId },
+        select: { nom: true, telephone: true },
+      });
       await envoyerSms({
         to: produit.agriculteur.telephone,
-        message: `Sɔrɔ: Nouvelle commande de ${quantiteKg} kg de ${produit.type.toLowerCase()} (${montantFcfa.toLocaleString('fr')} FCFA). Connectez-vous pour voir les détails.`,
+        message: `Sɔrɔ: Nouvelle commande de ${quantiteKg} kg de ${produit.type.toLowerCase()} (${montantFcfa.toLocaleString('fr')} FCFA) par ${acheteur?.nom}. Contactez-le sur WhatsApp : ${acheteur?.telephone}`,
       });
     } catch (smsErr) {
       console.error('[commandes/creer] SMS vendeur échoué:', smsErr);
@@ -119,17 +123,18 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
-    // Initier le paiement escrow via CinetPay
+    // Initier le paiement via Flutterwave
     const montantTotal = commande.montantFcfa + commande.commission;
+    const network = (req.body.network as string) || 'orange';
     const paiement = await initierPaiement({
       transaction_id: commande.id,
       amount: montantTotal,
       currency: 'XOF',
       customer_name: commande.acheteur.nom,
       customer_phone_number: commande.acheteur.telephone,
+      network,
       description: `Commande Sɔrɔ #${commande.id.slice(-8)}`,
-      return_url: `${process.env.FRONTEND_URL}/commandes/${commande.id}`,
-      notify_url: `${process.env.BACKEND_URL || 'http://localhost:5000'}/commandes/webhooks/cinetpay`,
+      return_url: `${process.env.FRONTEND_PUBLIC_URL || process.env.FRONTEND_URL}/commandes/${commande.id}`,
     });
 
     await prisma.commande.update({
@@ -138,8 +143,13 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
     });
 
     res.json({ success: true, data: { paymentUrl: paiement.payment_url } });
-  } catch (err) {
-    console.error('[commandes/payer]', err);
+  } catch (err: unknown) {
+    const axiosErr = err as { response?: { data?: unknown; status?: number }; message?: string };
+    console.error('[commandes/payer] Erreur:', {
+      status: axiosErr?.response?.status,
+      data: JSON.stringify(axiosErr?.response?.data),
+      message: axiosErr?.message,
+    });
     res.status(500).json({ success: false, error: 'Erreur lors du paiement' });
   }
 };
@@ -222,41 +232,66 @@ export const annulerCommande = async (req: AuthRequest, res: Response): Promise<
 };
 
 // ─────────────────────────────────────────────────────────────
-// POST /webhooks/cinetpay — callback serveur→serveur
+// POST /commandes/webhooks/flutterwave — callback serveur→serveur
+// Flutterwave envoie le header "verif-hash" = FLUTTERWAVE_SECRET_HASH
 // ─────────────────────────────────────────────────────────────
-export const webhookCinetPay = async (req: Request, res: Response): Promise<void> => {
+export const webhookFlutterwave = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { transaction_id, status } = req.body;
+    // Vérifier la signature du webhook
+    const secretHash = process.env.FLUTTERWAVE_SECRET_HASH;
+    const receivedHash = req.headers['verif-hash'];
 
-    if (!transaction_id) {
-      res.status(400).json({ message: 'transaction_id manquant' });
+    if (!secretHash || receivedHash !== secretHash) {
+      res.status(401).json({ message: 'Signature invalide' });
       return;
     }
 
-    // Vérifier le paiement auprès de CinetPay pour éviter les faux callbacks
-    const paiementVerifie = await verifierPaiement(transaction_id);
+    const { event, data } = req.body;
 
-    const commande = await prisma.commande.findUnique({ where: { id: transaction_id } });
+    // On ne traite que les paiements complétés
+    if (event !== 'charge.completed') {
+      res.json({ message: 'Événement ignoré' });
+      return;
+    }
+
+    const { id: flwId, reference: tx_ref, status } = data;
+
+    if (!tx_ref) {
+      res.status(400).json({ message: 'reference manquante' });
+      return;
+    }
+
+    // Vérifier auprès de Flutterwave (anti-fraude — ne jamais faire confiance au seul webhook)
+    const paiementVerifie = await verifierPaiement(flwId);
+
+    // S'assurer que la reference correspond bien
+    if (paiementVerifie.tx_ref !== tx_ref) {
+      res.status(400).json({ message: 'tx_ref incohérent' });
+      return;
+    }
+
+    const commande = await prisma.commande.findUnique({ where: { id: tx_ref } });
     if (!commande) {
       res.status(404).json({ message: 'Commande introuvable' });
       return;
     }
 
-    if (paiementVerifie.status === 'ACCEPTED') {
+    if (paiementVerifie.status === 'succeeded') {
       await prisma.commande.update({
-        where: { id: transaction_id },
+        where: { id: tx_ref },
         data: { statut: 'PAYE', paiementStatut: status },
       });
     } else {
+      // Paiement échoué ou pending → remettre en attente
       await prisma.commande.update({
-        where: { id: transaction_id },
+        where: { id: tx_ref },
         data: { statut: 'EN_ATTENTE', paiementStatut: status },
       });
     }
 
     res.json({ message: 'OK' });
   } catch (err) {
-    console.error('[webhook/cinetpay]', err);
+    console.error('[webhook/flutterwave]', err);
     res.status(500).json({ message: 'Erreur webhook' });
   }
 };
