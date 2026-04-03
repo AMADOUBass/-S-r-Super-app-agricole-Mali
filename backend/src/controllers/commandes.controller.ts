@@ -134,7 +134,7 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
       customer_phone_number: commande.acheteur.telephone,
       network,
       description: `Commande Sɔrɔ #${commande.id.slice(-8)}`,
-      return_url: `${process.env.FRONTEND_PUBLIC_URL || process.env.FRONTEND_URL}/commandes/${commande.id}`,
+      return_url: `${process.env.FRONTEND_PUBLIC_URL || process.env.FRONTEND_URL}/commandes/${commande.id}/payer`,
     });
 
     await prisma.commande.update({
@@ -246,10 +246,10 @@ export const webhookFlutterwave = async (req: Request, res: Response): Promise<v
       return;
     }
 
-    const { event, data } = req.body;
+    const { type, data } = req.body;
 
     // On ne traite que les paiements complétés
-    if (event !== 'charge.completed') {
+    if (type !== 'charge.completed') {
       res.json({ message: 'Événement ignoré' });
       return;
     }
