@@ -24,8 +24,12 @@ const app = express();
 app.use(helmet());
 app.use(cors({
   origin: (origin, callback) => {
-    // En développement, autoriser tous les localhost
-    if (!origin || origin.startsWith('http://localhost') || origin === process.env.FRONTEND_URL) {
+    if (
+      !origin ||
+      origin.startsWith('http://localhost') ||
+      origin === process.env.FRONTEND_URL ||
+      origin.endsWith('.vercel.app')
+    ) {
       callback(null, true);
     } else {
       callback(new Error('Non autorisé par CORS'));
