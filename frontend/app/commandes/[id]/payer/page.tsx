@@ -168,7 +168,7 @@ export default function PagePayerCommande() {
 
   if (chargement) return (
     <div className="min-h-screen flex flex-col bg-surface-2">
-      <Header retour="/produits" titre="Ma commande" />
+      <Header retour="/commandes" titre="Ma commande" />
       <div className="max-w-xl mx-auto w-full px-4 py-6 space-y-4">
         <div className="skeleton h-20 w-full rounded-2xl" />
         <div className="skeleton h-10 w-full rounded-2xl" />
@@ -181,7 +181,7 @@ export default function PagePayerCommande() {
 
   if (!commande) return (
     <div className="min-h-screen flex flex-col bg-surface-2">
-      <Header retour="/produits" />
+      <Header retour="/commandes" />
       <div className="flex-1 flex flex-col items-center justify-center gap-3 px-4 py-20">
         <div className="w-16 h-16 rounded-2xl bg-surface-3 flex items-center justify-center text-3xl">❌</div>
         <p className="font-bold text-foreground-3 text-lg">Commande introuvable</p>
@@ -199,7 +199,7 @@ export default function PagePayerCommande() {
 
   return (
     <div className="min-h-screen bg-surface-2 flex flex-col">
-      <Header retour="/produits" titre="Ma commande" />
+      <Header retour="/commandes" titre="Ma commande" />
 
       <main className="flex-1 max-w-xl mx-auto w-full px-4 py-6 space-y-4">
 

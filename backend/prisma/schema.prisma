@@ -108,8 +108,8 @@ model Commande {
   montantFcfa  Int                               // montant total
   commission   Int                               // 3% du montant (payé par l'acheteur)
   statut       StatutCommande @default(EN_ATTENTE)
-  paiementRef  String?                           // référence CinetPay
-  paiementStatut String?                         // statut retour webhook CinetPay
+  paiementRef  String?                           // charge ID Flutterwave (chg_xxx)
+  paiementStatut String?                         // statut retour webhook Flutterwave
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
 

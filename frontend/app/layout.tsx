@@ -9,6 +9,11 @@ export const metadata: Metadata = {
   title: 'Sɔrɔ — Marché Agricole Mali',
   description: 'Vendez et achetez vos récoltes au meilleur prix. Connecte agriculteurs et acheteurs au Mali.',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/images/logo-soro.png',
+    shortcut: '/images/logo-soro.png',
+    apple: '/images/logo-soro.png',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',

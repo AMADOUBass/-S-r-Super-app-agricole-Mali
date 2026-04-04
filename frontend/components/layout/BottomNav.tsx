@@ -74,6 +74,16 @@ const ongletAcheteur: Onglet = {
   ),
 };
 
+const ongletAdmin: Onglet = {
+  href: '/admin',
+  label: 'Admin',
+  icon: (active) => (
+    <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={active ? 2.5 : 2} strokeLinecap="round" strokeLinejoin="round">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+    </svg>
+  ),
+};
+
 const ongletConnexion: Onglet = {
   href: '/connexion',
   label: 'Connexion',
@@ -90,7 +100,7 @@ export function BottomNav() {
   const pathname = usePathname();
   const utilisateur = useStore(s => s.utilisateur);
   const token = useStore(s => s.token);
-  const { data: commandes } = useCommandesVendeur();
+  const { data: commandes } = useCommandesVendeur(utilisateur?.role === 'AGRICULTEUR');
 
   // Badge commandes en attente — seulement si connecté en tant qu'agriculteur
   const nbEnAttente = token && utilisateur?.role === 'AGRICULTEUR'
@@ -101,6 +111,8 @@ export function BottomNav() {
   let dernierOnglet: Onglet;
   if (!utilisateur) {
     dernierOnglet = ongletConnexion;
+  } else if (utilisateur.role === 'ADMIN') {
+    dernierOnglet = ongletAdmin;
   } else if (utilisateur.role === 'AGRICULTEUR') {
     dernierOnglet = ongletAgriculteur;
   } else {

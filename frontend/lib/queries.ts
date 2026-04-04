@@ -134,7 +134,7 @@ export const useMeteo = (commune: string) => {
 // COMMANDES
 // ─────────────────────────────────────────────────────────────
 
-export const useCommandesVendeur = () => {
+export const useCommandesVendeur = (active = true) => {
   const token = typeof window !== 'undefined'
     ? (() => { try { return JSON.parse(localStorage.getItem('soro-store') || '{}')?.state?.token; } catch { return null; } })()
     : null;
@@ -145,6 +145,6 @@ export const useCommandesVendeur = () => {
       const res = await api.get('/commandes/mes-commandes');
       return res.data.data;
     },
-    enabled: !!token,
+    enabled: !!token && active,
   });
 };

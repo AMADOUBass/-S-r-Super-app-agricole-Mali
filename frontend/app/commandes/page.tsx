@@ -71,7 +71,7 @@ export default function PageCommandes() {
 
   return (
     <div className="min-h-screen bg-surface-2 flex flex-col">
-      <Header titre="Mes commandes" />
+      <Header retour="/" titre="Mes commandes" />
 
       <main className="flex-1 pb-24 max-w-xl mx-auto w-full px-4 py-5">
 

@@ -19,8 +19,10 @@ export default function PageMonEspace() {
   const { data: commandes } = useCommandesVendeur();
 
   useEffect(() => {
-    if (hasHydrated && !token) router.push('/connexion');
-  }, [hasHydrated, token, router]);
+    if (!hasHydrated) return;
+    if (!token) { router.push('/connexion'); return; }
+    if (utilisateur?.role === 'ADMIN') { router.replace('/admin'); }
+  }, [hasHydrated, token, utilisateur, router]);
 
   if (!hasHydrated) return null;
 
