@@ -4,6 +4,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
+import { ArrowLeft, ChevronDown, ArrowRight, LayoutDashboard, User, ShieldCheck, Plus, LogOut } from 'lucide-react';
 import useStore from '@/store/useStore';
 
 interface HeaderProps {
@@ -70,9 +71,7 @@ export function Header({ titre, retour }: HeaderProps) {
               onClick={() => router.push(retour)}
               className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-surface-3 active:scale-95 transition-all text-foreground-3"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 12H5M12 5l-7 7 7 7"/>
-              </svg>
+              <ArrowLeft size={20} strokeWidth={2.5} />
             </button>
           ) : (
             <Link href="/" className="flex items-center gap-2.5 group">
@@ -117,10 +116,7 @@ export function Header({ titre, retour }: HeaderProps) {
                 <span className="text-sm font-semibold text-foreground-2 hidden sm:inline">
                   {utilisateur.nom.split(' ')[0]}
                 </span>
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"
-                  className={`text-muted-fg transition-transform duration-200 ${menuOuvert ? 'rotate-180' : ''}`}>
-                  <polyline points="6 9 12 15 18 9"/>
-                </svg>
+                <ChevronDown size={14} strokeWidth={2.5} className={`text-muted-fg transition-transform duration-200 ${menuOuvert ? 'rotate-180' : ''}`} />
               </button>
 
               {/* Dropdown menu */}
@@ -139,10 +135,7 @@ export function Header({ titre, retour }: HeaderProps) {
                     {utilisateur?.role !== 'ADMIN' && (
                       <Link href={lienTableau} onClick={() => setMenuOuvert(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-                          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
-                        </svg>
+                        <LayoutDashboard size={15} strokeWidth={2} />
                         Mon espace
                       </Link>
                     )}
@@ -150,9 +143,7 @@ export function Header({ titre, retour }: HeaderProps) {
                     {utilisateur?.role !== 'ADMIN' && (
                       <Link href="/mon-profil" onClick={() => setMenuOuvert(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                        </svg>
+                        <User size={15} strokeWidth={2} />
                         Mon profil
                       </Link>
                     )}
@@ -160,9 +151,7 @@ export function Header({ titre, retour }: HeaderProps) {
                     {utilisateur?.role === 'ADMIN' && (
                       <Link href="/admin" onClick={() => setMenuOuvert(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-purple-700 hover:bg-purple-50 transition-colors font-semibold">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                        </svg>
+                        <ShieldCheck size={15} strokeWidth={2} />
                         Administration
                       </Link>
                     )}
@@ -170,9 +159,7 @@ export function Header({ titre, retour }: HeaderProps) {
                     {utilisateur.role === 'AGRICULTEUR' && (
                       <Link href="/vendre" onClick={() => setMenuOuvert(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                          <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                        </svg>
+                        <Plus size={15} strokeWidth={2} />
                         Publier une annonce
                       </Link>
                     )}
@@ -181,11 +168,7 @@ export function Header({ titre, retour }: HeaderProps) {
                   <div className="border-t border-border/50 py-1.5">
                     <button onClick={handleDeconnecter}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                        <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/>
-                        <polyline points="16 17 21 12 16 7"/>
-                        <line x1="21" y1="12" x2="9" y2="12"/>
-                      </svg>
+                      <LogOut size={15} strokeWidth={2} />
                       Se déconnecter
                     </button>
                   </div>
@@ -201,7 +184,7 @@ export function Header({ titre, retour }: HeaderProps) {
               <Link href="/inscription"
                 className="inline-flex items-center gap-1.5 bg-primary-700 hover:bg-primary-800 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-px transition-all duration-200 active:scale-95">
                 S'inscrire
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <ArrowRight size={14} strokeWidth={2.5} />
               </Link>
             </div>
           )}
