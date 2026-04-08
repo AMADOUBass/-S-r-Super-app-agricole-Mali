@@ -12,7 +12,7 @@ import { useState } from 'react';
 import {
   Wheat, Clock, CheckCircle2, Banknote,
   Plus, ClipboardList, CloudSun, TrendingUp,
-  ChevronRight, Trash2, Loader2, MapPin, Sprout,
+  ChevronRight, Trash2, Loader2, MapPin, Sprout, Pencil,
 } from 'lucide-react';
 
 const heure = new Date().getHours();
@@ -222,21 +222,31 @@ export default function TableauBordAgriculteur() {
                 <Link href="/vendre" className="btn btn-primary btn-sm">Commencer</Link>
               </div>
             ) : (
-              <div className="divide-y divide-border/40">
+              <div className="p-4 space-y-3">
                 {(produits as Array<{id: string; type: string; quantiteKg: number; prixFcfa: number; commune: string; region: string; photoUrl?: string | null; description?: string | null; createdAt?: string; disponible: boolean}>)?.map((p, i) => (
                   <div key={p.id} className="relative animate-fade-up" style={{ animationDelay: `${i * 50}ms` }}>
                     <CarteAnnonce annonce={p} type="produit" />
-                    <button
-                      onClick={() => supprimerAnnonce(p.id)}
-                      disabled={suppression === p.id}
-                      className="absolute top-3 right-3 w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 flex items-center justify-center transition-all hover:scale-110 duration-200"
-                      title="Supprimer"
-                    >
-                      {suppression === p.id
-                        ? <Loader2 size={13} className="animate-spin text-red-500" />
-                        : <Trash2 size={13} className="text-red-500" strokeWidth={2} />
-                      }
-                    </button>
+                    {/* Boutons en bas à droite — ne cachent pas le prix qui est en haut */}
+                    <div className="absolute bottom-3 right-3 flex gap-1.5">
+                      <Link
+                        href={`/produits/${p.id}/modifier`}
+                        aria-label="Modifier cette annonce"
+                        className="w-8 h-8 rounded-lg bg-primary-50 hover:bg-primary-100 border border-primary-200 flex items-center justify-center transition-all hover:scale-110 duration-200"
+                      >
+                        <Pencil size={13} className="text-primary-600" strokeWidth={2} aria-hidden="true" />
+                      </Link>
+                      <button
+                        onClick={() => supprimerAnnonce(p.id)}
+                        disabled={suppression === p.id}
+                        aria-label="Supprimer cette annonce"
+                        className="w-8 h-8 rounded-lg bg-red-50 hover:bg-red-100 border border-red-200 flex items-center justify-center transition-all hover:scale-110 duration-200"
+                      >
+                        {suppression === p.id
+                          ? <Loader2 size={13} className="animate-spin text-red-500" aria-hidden="true" />
+                          : <Trash2 size={13} className="text-red-500" strokeWidth={2} aria-hidden="true" />
+                        }
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
