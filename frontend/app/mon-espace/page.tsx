@@ -7,9 +7,21 @@ import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import useStore from '@/store/useStore';
 import { useCommandesVendeur } from '@/lib/queries';
+import {
+  ShoppingCart, Clock, CheckCircle2, Banknote,
+  Wheat, TrendingUp, CloudSun, ChevronRight, MapPin, PackageOpen,
+} from 'lucide-react';
 
 const heure = new Date().getHours();
 const salutation = heure < 12 ? 'Bonjour' : heure < 18 ? 'Bon après-midi' : 'Bonsoir';
+
+const STATUT_CONFIG: Record<string, { label: string; badge: string }> = {
+  EN_ATTENTE:      { label: 'En attente',  badge: 'bg-amber-50 text-amber-700 border-amber-200' },
+  PAIEMENT_INITIE: { label: 'Paiement…',   badge: 'bg-blue-50 text-blue-700 border-blue-200' },
+  PAYE:            { label: 'Payée',        badge: 'bg-primary-50 text-primary-700 border-primary-200' },
+  LIVRE:           { label: 'Livrée',       badge: 'bg-primary-50 text-primary-700 border-primary-200' },
+  ANNULE:          { label: 'Annulée',      badge: 'bg-red-50 text-red-700 border-red-200' },
+};
 
 export default function PageMonEspace() {
   const router = useRouter();
@@ -26,47 +38,39 @@ export default function PageMonEspace() {
 
   if (!hasHydrated) return null;
 
-  const mesAchats = (commandes as Array<{ acheteur: { telephone: string }; statut: string }> | undefined)
+  type Commande = { id: string; acheteur: { telephone: string }; vendeur: { nom: string }; produit: { type: string }; statut: string; montantFcfa: number; commission: number; createdAt: string };
+  const mesAchats = (commandes as Commande[] | undefined)
     ?.filter(c => c.acheteur.telephone === utilisateur?.telephone) ?? [];
+
   const enAttente = mesAchats.filter(c => c.statut === 'EN_ATTENTE').length;
+  const payees = mesAchats.filter(c => ['PAYE', 'LIVRE'].includes(c.statut)).length;
+  const totalDepense = mesAchats
+    .filter(c => ['PAYE', 'LIVRE'].includes(c.statut))
+    .reduce((s, c) => s + c.montantFcfa + c.commission, 0);
 
   const roleLabel = utilisateur?.role === 'ACHETEUR' ? 'Acheteur'
     : utilisateur?.role === 'BOUTIQUE' ? 'Boutique / Pro'
     : 'Utilisateur';
 
+  const stats = [
+    { valeur: mesAchats.length, label: 'Commandes passées', Icon: ShoppingCart, iconBg: 'bg-amber-100', iconColor: 'text-amber-600', color: 'text-amber-600' },
+    { valeur: enAttente,        label: 'En attente',         Icon: Clock,        iconBg: 'bg-blue-100',  iconColor: 'text-blue-500',  color: 'text-blue-600' },
+    { valeur: payees,           label: 'Livrées',            Icon: CheckCircle2, iconBg: 'bg-primary-100', iconColor: 'text-primary-500', color: 'text-primary-700' },
+    {
+      valeur: totalDepense > 0 ? `${(totalDepense / 1000).toFixed(0)}k` : '—',
+      label: 'FCFA dépensés',
+      Icon: Banknote,
+      iconBg: 'bg-slate-100',
+      iconColor: 'text-slate-500',
+      color: 'text-slate-700',
+    },
+  ];
+
   const actions = [
-    {
-      href: '/produits',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M12 22V12M12 12C12 7 7 4 2 6M12 12C12 7 17 4 22 6"/><path d="M2 6c2 6 5 9 10 10M22 6c-2 6-5 9-10 10"/></svg>,
-      iconBg: 'bg-primary-600',
-      wrapBg: 'bg-primary-50 border-primary-200 hover:bg-primary-100',
-      label: 'Acheter récoltes',
-      labelColor: 'text-primary-700',
-    },
-    {
-      href: '/commandes',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>,
-      iconBg: 'bg-amber-500',
-      wrapBg: 'bg-amber-50 border-amber-200 hover:bg-amber-100',
-      label: 'Mes commandes',
-      labelColor: 'text-amber-700',
-    },
-    {
-      href: '/marche',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>,
-      iconBg: 'bg-foreground-3',
-      wrapBg: 'bg-surface-2 border-border hover:bg-surface-3',
-      label: 'Prix du marché',
-      labelColor: 'text-foreground-3',
-    },
-    {
-      href: '/meteo',
-      icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5"><path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></svg>,
-      iconBg: 'bg-sky-500',
-      wrapBg: 'bg-sky-50 border-sky-200 hover:bg-sky-100',
-      label: 'Météo 7 jours',
-      labelColor: 'text-sky-700',
-    },
+    { href: '/produits',  Icon: Wheat,       bg: 'bg-primary-600', wrap: 'bg-primary-50 border-primary-200 hover:bg-primary-100', label: 'Acheter récoltes',  labelColor: 'text-primary-700' },
+    { href: '/commandes', Icon: ShoppingCart, bg: 'bg-amber-500',   wrap: 'bg-amber-50 border-amber-200 hover:bg-amber-100',       label: 'Mes commandes',    labelColor: 'text-amber-700',  badge: enAttente },
+    { href: '/marche',    Icon: TrendingUp,   bg: 'bg-slate-600',   wrap: 'bg-slate-50 border-slate-200 hover:bg-slate-100',       label: 'Prix du marché',   labelColor: 'text-slate-600' },
+    { href: '/meteo',     Icon: CloudSun,     bg: 'bg-sky-500',     wrap: 'bg-sky-50 border-sky-200 hover:bg-sky-100',             label: 'Météo 7 jours',    labelColor: 'text-sky-700' },
   ];
 
   return (
@@ -75,7 +79,7 @@ export default function PageMonEspace() {
 
       <main className="flex-1 pb-24 md:pb-8">
 
-        {/* Hero */}
+        {/* Hero acheteur */}
         <div className="bg-gradient-to-br from-amber-600 via-amber-700 to-amber-900 px-4 pt-8 pb-16 relative overflow-hidden">
           <div className="absolute -right-12 -top-12 w-48 h-48 rounded-full bg-white/5" />
           <div className="absolute right-8 bottom-4 w-32 h-32 rounded-full bg-white/5" />
@@ -89,26 +93,40 @@ export default function PageMonEspace() {
             <h1 className="text-2xl md:text-3xl font-black text-white mb-1 animate-fade-up">
               {salutation}, {utilisateur?.nom?.split(' ')[0]} 👋
             </h1>
-            <p className="text-white/55 text-sm animate-fade-up delay-75">
-              📍 {utilisateur?.commune} · {utilisateur?.region?.charAt(0)}{utilisateur?.region?.slice(1).toLowerCase()}
+            <p className="text-white/55 text-sm animate-fade-up delay-75 flex items-center gap-1.5">
+              <MapPin size={13} />
+              {utilisateur?.commune} · {utilisateur?.region?.charAt(0)}{utilisateur?.region?.slice(1).toLowerCase()}
             </p>
           </div>
         </div>
 
         <div className="max-w-6xl mx-auto px-4 -mt-8 relative z-10 space-y-5">
 
-          {/* Stats */}
+          {/* Alerte commandes en attente */}
+          {enAttente > 0 && (
+            <Link href="/commandes"
+              className="flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-2xl px-4 py-3 animate-fade-up hover:bg-amber-100 transition-colors">
+              <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
+                <Clock size={15} className="text-amber-600" />
+              </div>
+              <p className="text-sm font-semibold text-amber-700 flex-1">
+                {enAttente} commande{enAttente > 1 ? 's' : ''} en attente de paiement
+              </p>
+              <ChevronRight size={16} className="text-amber-500" />
+            </Link>
+          )}
+
+          {/* Stats 2×2 */}
           <div className="grid grid-cols-2 gap-3 animate-fade-up">
-            <div className="stat-card">
-              <div className="w-9 h-9 rounded-xl border bg-amber-50 border-amber-100 flex items-center justify-center text-lg">🛒</div>
-              <div className="text-3xl font-black text-amber-600 mt-1">{mesAchats.length}</div>
-              <div className="text-xs font-semibold text-muted-fg leading-tight">Commandes passées</div>
-            </div>
-            <div className="stat-card">
-              <div className="w-9 h-9 rounded-xl border bg-primary-50 border-primary-100 flex items-center justify-center text-lg">⏳</div>
-              <div className="text-3xl font-black text-primary-700 mt-1">{enAttente}</div>
-              <div className="text-xs font-semibold text-muted-fg leading-tight">En attente</div>
-            </div>
+            {stats.map((s, i) => (
+              <div key={s.label} className="stat-card animate-fade-up" style={{ animationDelay: `${i * 60}ms` }}>
+                <div className={`w-9 h-9 rounded-xl ${s.iconBg} flex items-center justify-center flex-shrink-0`}>
+                  <s.Icon size={18} className={s.iconColor} strokeWidth={2} />
+                </div>
+                <div className={`text-3xl font-black ${s.color} mt-1`}>{s.valeur}</div>
+                <div className="text-xs font-semibold text-muted-fg leading-tight">{s.label}</div>
+              </div>
+            ))}
           </div>
 
           {/* Actions rapides */}
@@ -118,13 +136,15 @@ export default function PageMonEspace() {
             </div>
             <div className="p-4 grid grid-cols-2 gap-3">
               {actions.map(a => (
-                <Link
-                  key={a.href}
-                  href={a.href}
-                  className={`flex flex-col items-center gap-2 p-4 border rounded-xl transition-all duration-200 group ${a.wrapBg}`}
-                >
-                  <div className={`w-11 h-11 rounded-xl ${a.iconBg} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-200`}>
-                    {a.icon}
+                <Link key={a.href} href={a.href}
+                  className={`flex flex-col items-center gap-2 p-4 border rounded-xl transition-all duration-200 group ${a.wrap}`}>
+                  <div className={`relative w-11 h-11 rounded-xl ${a.bg} flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform duration-200`}>
+                    <a.Icon size={18} color="white" strokeWidth={2.5} />
+                    {(a.badge ?? 0) > 0 && (
+                      <span className="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center border-2 border-white">
+                        {a.badge}
+                      </span>
+                    )}
                   </div>
                   <span className={`text-xs font-bold text-center leading-tight ${a.labelColor}`}>{a.label}</span>
                 </Link>
@@ -133,45 +153,54 @@ export default function PageMonEspace() {
           </div>
 
           {/* Dernières commandes */}
-          {mesAchats.length > 0 && (
+          {mesAchats.length > 0 ? (
             <div className="card overflow-hidden animate-fade-up delay-200">
               <div className="flex items-center justify-between px-5 py-4 border-b border-border/50">
-                <h2 className="font-bold text-foreground">Dernières commandes</h2>
-                <Link href="/commandes" className="text-xs font-semibold text-primary-700 flex items-center gap-1 hover:text-primary-800 transition-colors">
-                  Tout voir
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+                <div>
+                  <p className="text-xs font-semibold text-muted-fg uppercase tracking-wider">Historique</p>
+                  <h2 className="font-bold text-foreground mt-0.5">Dernières commandes</h2>
+                </div>
+                <Link href="/commandes" className="text-xs font-semibold text-primary-700 flex items-center gap-0.5 hover:text-primary-800 transition-colors">
+                  Tout voir <ChevronRight size={13} strokeWidth={2.5} />
                 </Link>
               </div>
               <div className="divide-y divide-border/40">
-                {(mesAchats as unknown as Array<{ id: string; produit: { type: string }; montantFcfa: number; commission: number; statut: string }>).slice(0, 3).map(c => (
-                  <Link
-                    key={c.id}
-                    href={`/commandes/${c.id}/payer`}
-                    className="flex items-center justify-between px-5 py-3.5 hover:bg-surface-2 transition-colors group"
-                  >
-                    <span className="text-sm font-semibold text-foreground">
-                      {c.produit.type.charAt(0) + c.produit.type.slice(1).toLowerCase()}
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border ${
-                        c.statut === 'EN_ATTENTE' ? 'bg-amber-50 text-amber-700 border-amber-200' :
-                        c.statut === 'PAYE' ? 'bg-primary-50 text-primary-700 border-primary-200' :
-                        c.statut === 'LIVRE' ? 'bg-primary-50 text-primary-700 border-primary-200' :
-                        'bg-red-50 text-red-700 border-red-200'
-                      }`}>
-                        {c.statut === 'EN_ATTENTE' ? 'En attente' :
-                         c.statut === 'PAYE' ? 'Payée' :
-                         c.statut === 'LIVRE' ? 'Livrée' : 'Annulée'}
-                      </span>
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <path d="M9 18l6-6-6-6"/>
-                      </svg>
-                    </div>
-                  </Link>
-                ))}
+                {mesAchats.slice(0, 4).map(c => {
+                  const cfg = STATUT_CONFIG[c.statut] ?? STATUT_CONFIG.ANNULE;
+                  const typeLabel = c.produit.type.charAt(0) + c.produit.type.slice(1).toLowerCase();
+                  const date = new Date(c.createdAt).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+                  return (
+                    <Link key={c.id} href={`/commandes/${c.id}/payer`}
+                      className="flex items-center gap-3 px-5 py-3.5 hover:bg-surface-2 transition-colors group">
+                      <div className="w-9 h-9 rounded-xl bg-amber-50 border border-amber-100 flex items-center justify-center flex-shrink-0">
+                        <ShoppingCart size={15} className="text-amber-500" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-foreground truncate">{typeLabel}</p>
+                        <p className="text-xs text-muted-fg">{date} · {c.vendeur.nom}</p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${cfg.badge}`}>
+                          {cfg.label}
+                        </span>
+                        <ChevronRight size={13} className="text-muted opacity-0 group-hover:opacity-100 transition-opacity" />
+                      </div>
+                    </Link>
+                  );
+                })}
               </div>
             </div>
+          ) : (
+            <div className="card p-10 text-center animate-fade-up delay-200">
+              <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-3">
+                <PackageOpen size={32} className="text-amber-300" strokeWidth={1.5} />
+              </div>
+              <p className="font-bold text-foreground-3 mb-1">Aucune commande</p>
+              <p className="text-sm text-muted-fg mb-5">Explorez les récoltes disponibles</p>
+              <Link href="/produits" className="btn btn-primary btn-sm">Voir les récoltes</Link>
+            </div>
           )}
+
         </div>
       </main>
 
