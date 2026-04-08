@@ -19,11 +19,11 @@ export const inscrire = async (req: Request, res: Response): Promise<void> => {
   try {
     const { telephone, nom, role, commune, region } = req.body;
 
-    // Créer ou mettre à jour l'utilisateur (upsert)
+    // Créer l'utilisateur s'il n'existe pas — ne jamais écraser les données existantes
     await prisma.utilisateur.upsert({
       where: { telephone },
       create: { telephone, nom, role, commune, region },
-      update: { nom, commune, region },
+      update: {},
     });
 
     // Invalider les anciens OTP pour ce numéro
