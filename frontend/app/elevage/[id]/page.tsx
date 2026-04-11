@@ -2,10 +2,12 @@
 
 import { useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Header } from '@/components/layout/Header';
 import { api } from '@/lib/api';
 import useStore from '@/store/useStore';
+import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import { MapPin, Phone, PawPrint, ChevronRight } from 'lucide-react';
 
 const EMOJI: Record<string, string> = {
@@ -43,6 +45,8 @@ export default function PageDetailAnimal() {
   const { id } = useParams<{ id: string }>();
   const router = useRouter();
   const utilisateur = useStore(s => s.utilisateur);
+
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   const { data: animal, isLoading } = useQuery({
     queryKey: ['animal', id],
@@ -101,17 +105,17 @@ export default function PageDetailAnimal() {
 
         {/* Hero */}
         {animal.photoUrl ? (
-          <div className={`relative w-full bg-gradient-to-br ${gradient} flex items-center justify-center`} style={{ minHeight: '220px', maxHeight: '320px' }}>
-            <div className="relative w-full" style={{ height: '260px' }}>
-              <Image
-                src={animal.photoUrl}
-                alt={typeLabel}
-                fill
-                className="object-contain"
-                sizes="(max-width: 640px) 100vw, 640px"
-              />
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 pt-8 pb-4">
+          <div className={`relative w-full bg-gradient-to-br ${gradient}`} style={{ minHeight: '220px', maxHeight: '320px' }}>
+            <ImageLightbox
+              src={animal.photoUrl}
+              alt={typeLabel}
+              gradient={gradient}
+              className="relative w-full block"
+              open={photoOpen}
+              onOpen={() => setPhotoOpen(true)}
+              onClose={() => setPhotoOpen(false)}
+            />
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 pt-8 pb-4 pointer-events-none">
               <div className="flex items-end justify-between">
                 <div>
                   <h1 className="text-2xl font-black text-white drop-shadow">

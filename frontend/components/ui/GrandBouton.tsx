@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Image from 'next/image';
+import Image, { StaticImageData } from 'next/image';
 
 interface GrandBoutonProps {
   href: string;
@@ -8,7 +8,7 @@ interface GrandBoutonProps {
   sousTitre?: string;
   gradient: string;
   badge?: string;
-  imageSrc?: string;
+  imageSrc?: string | StaticImageData;
 }
 
 export function GrandBouton({ href, emoji, titre, sousTitre, gradient, badge, imageSrc }: GrandBoutonProps) {
@@ -26,6 +26,7 @@ export function GrandBouton({ href, emoji, titre, sousTitre, gradient, badge, im
             alt={titre}
             fill
             className="object-cover object-center group-hover:scale-110 transition-transform duration-700 ease-out"
+            placeholder={typeof imageSrc === 'object' ? 'blur' : 'empty'}
             sizes="(max-width: 640px) 45vw, 220px"
           />
           {/* Dark overlay — lighter on hover */}

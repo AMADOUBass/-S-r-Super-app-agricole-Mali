@@ -7,6 +7,7 @@ import { useProduit } from '@/lib/queries';
 import { api } from '@/lib/api';
 import { useState } from 'react';
 import useStore from '@/store/useStore';
+import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import {
   MapPin, Package, CheckCircle2, XCircle, Phone, Loader2,
   ShoppingCart, Minus, Plus, Wheat, Lock, ChevronRight,
@@ -45,6 +46,7 @@ export default function PageDetailProduit() {
   const [quantite, setQuantite] = useState(1);
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState('');
+  const [photoOpen, setPhotoOpen] = useState(false);
 
   const commander = async () => {
     if (!token) { router.push('/connexion'); return; }
@@ -112,19 +114,18 @@ export default function PageDetailProduit() {
 
         {/* Hero */}
         {produit.photoUrl ? (
-          <div className={`relative w-full bg-gradient-to-br ${gradient} flex items-center justify-center`} style={{ minHeight: '220px', maxHeight: '320px' }}>
-            {/* Image centrée, non étirée */}
-            <div className="relative w-full" style={{ height: '260px' }}>
-              <Image
-                src={produit.photoUrl}
-                alt={typeLabel}
-                fill
-                className="object-contain"
-                sizes="(max-width: 640px) 100vw, 640px"
-              />
-            </div>
+          <div className={`relative w-full bg-gradient-to-br ${gradient}`} style={{ minHeight: '220px', maxHeight: '320px' }}>
+            <ImageLightbox
+              src={produit.photoUrl}
+              alt={typeLabel}
+              gradient={gradient}
+              className="relative w-full block"
+              open={photoOpen}
+              onOpen={() => setPhotoOpen(true)}
+              onClose={() => setPhotoOpen(false)}
+            />
             {/* Bandeau infos en bas */}
-            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 pt-8 pb-4">
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent px-4 pt-8 pb-4 pointer-events-none">
               <div className="flex items-end justify-between">
                 <div>
                   <h1 className="text-2xl font-black text-white drop-shadow">{typeLabel}</h1>

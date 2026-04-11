@@ -47,7 +47,14 @@ const nextConfig = {
         hostname: 'res.cloudinary.com',
       },
     ],
-    formats: ['image/webp', 'image/avif'],
+    // AVIF en premier : meilleure compression (~50% vs WebP) sur navigateurs modernes
+    formats: ['image/avif', 'image/webp'],
+    // Tailles générées pour mobile (petits écrans Mali) — évite de servir des images 2×
+    deviceSizes: [360, 480, 640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256],
+    // Cache images optimisées 30 jours (images statiques ne changent pas)
+    minimumCacheTTL: 60 * 60 * 24 * 30,
+
   },
   // Compression maximale pour réseaux lents
   compress: true,

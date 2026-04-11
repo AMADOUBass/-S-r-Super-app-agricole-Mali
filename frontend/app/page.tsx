@@ -3,6 +3,19 @@ import Image from 'next/image';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { GrandBouton } from '@/components/ui/GrandBouton';
+import heroImg from '@/public/images/transaction-agri-elev.png';
+import dameImg from '@/public/images/dame-testimo-phone.png';
+import groupeImg from '@/public/images/group-testimo.png';
+import panneauImg from '@/public/images/panneau.png';
+import telMarcheImg from '@/public/images/Tel-Marche.png';
+import kidsImg from '@/public/images/kids.png';
+import vehiculeImg from '@/public/images/vehicule.png';
+import salleImg from '@/public/images/salle-reunion.png';
+import reunionImg from '@/public/images/reunion.png';
+import produitImg from '@/public/images/produit.png';
+import tracteurModuleImg from '@/public/images/tracteur.png';
+import betailModuleImg from '@/public/images/betail.png';
+import reunionVillageImg from '@/public/images/reunion-village.png';
 
 const modules = [
   {
@@ -11,7 +24,7 @@ const modules = [
     titre: 'Récoltes agricoles',
     sousTitre: 'Mil, arachide, mangue…',
     gradient: 'bg-gradient-to-br from-primary-700 to-primary-900',
-    imageSrc: '/images/produit.png',
+    imageSrc: produitImg,
     badge: 'Populaire',
   },
   {
@@ -27,7 +40,7 @@ const modules = [
     titre: 'Louer du matériel',
     sousTitre: 'Tracteur, motopompe…',
     gradient: 'bg-gradient-to-br from-amber-500 to-orange-600',
-    imageSrc: '/images/tracteur.png',
+    imageSrc: tracteurModuleImg,
   },
   {
     href: '/elevage',
@@ -35,7 +48,7 @@ const modules = [
     titre: 'Élevage',
     sousTitre: 'Moutons, bœufs…',
     gradient: 'bg-gradient-to-br from-rose-500 to-red-700',
-    imageSrc: '/images/betail.png',
+    imageSrc: betailModuleImg,
   },
   {
     href: '/meteo',
@@ -43,7 +56,7 @@ const modules = [
     titre: 'Météo agricole',
     sousTitre: 'Prévisions 7 jours',
     gradient: 'bg-gradient-to-br from-sky-500 to-blue-700',
-    imageSrc: '/images/reunion-village.png',
+    imageSrc: reunionVillageImg,
   },
 ];
 
@@ -62,19 +75,19 @@ const etapes = [
 
 const temoignages = [
   {
-    image: '/images/dame-testimo-phone.png',
+    image: dameImg,
     quote: "Maintenant je connais le vrai prix avant de vendre. Je gagne 30% de plus.",
     nom: 'Fatoumata K.', lieu: 'Agricultrice à Ségou',
     position: 'object-[center_20%]',
   },
   {
-    image: '/images/group-testimo.png',
+    image: groupeImg,
     quote: "Tout notre groupement utilise Sɔrɔ pour vendre ensemble au meilleur prix.",
     nom: 'Coopérative de Mopti', lieu: 'Groupement de 12 agriculteurs',
     position: 'object-[center_30%]',
   },
   {
-    image: '/images/kids.png',
+    image: kidsImg,
     quote: "Grâce aux revenus de Sɔrɔ, mes enfants peuvent aller à l'école.",
     nom: 'Mamadou S.', lieu: 'Agriculteur à Sikasso',
     position: 'object-[center_40%]',
@@ -82,10 +95,10 @@ const temoignages = [
 ];
 
 const impacts = [
-  { image: '/images/panneau.png', titre: 'Présent au Mali', desc: 'Toutes les 11 régions couvertes' },
-  { image: '/images/vehicule.png', titre: 'Contact direct', desc: 'Vendeur et acheteur se parlent' },
-  { image: '/images/salle-reunion.png', titre: 'Coopératives', desc: 'Groupements agricoles connectés' },
-  { image: '/images/Tel-Marche.png', titre: 'Accessible partout', desc: 'Depuis n\'importe quel téléphone' },
+  { image: panneauImg, titre: 'Présent au Mali', desc: 'Toutes les 11 régions couvertes' },
+  { image: vehiculeImg, titre: 'Contact direct', desc: 'Vendeur et acheteur se parlent' },
+  { image: salleImg, titre: 'Coopératives', desc: 'Groupements agricoles connectés' },
+  { image: telMarcheImg, titre: 'Accessible partout', desc: 'Depuis n\'importe quel téléphone' },
 ];
 
 export default function Accueil() {
@@ -98,11 +111,12 @@ export default function Accueil() {
         {/* ── Hero ─────────────────────────────────────────────── */}
         <section className="relative w-full overflow-hidden" style={{ height: 'clamp(380px, 65vw, 620px)' }}>
           <Image
-            src="/images/transaction-agri-elev.png"
+            src={heroImg}
             alt="Agriculteurs maliens avec Sɔrɔ"
             fill
             className="object-cover object-[center_35%]"
             priority
+            placeholder="blur"
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10" />
@@ -195,10 +209,11 @@ export default function Accueil() {
               {/* Grande image gauche */}
               <div className="relative rounded-2xl overflow-hidden shadow-card-hover" style={{ minHeight: '280px' }}>
                 <Image
-                  src="/images/dame-testimo-phone.png"
+                  src={dameImg}
                   alt="Agricultrice recevant SMS Sɔrɔ"
                   fill
                   className="object-cover object-[center_20%]"
+                  placeholder="blur"
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -216,10 +231,11 @@ export default function Accueil() {
               <div className="flex flex-col gap-4">
                 <div className="relative rounded-2xl overflow-hidden shadow-card" style={{ minHeight: '130px' }}>
                   <Image
-                    src="/images/group-testimo.png"
+                    src={groupeImg}
                     alt="Groupe d'agriculteurs Sɔrɔ"
                     fill
                     className="object-cover object-[center_30%]"
+                    placeholder="blur"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -230,10 +246,11 @@ export default function Accueil() {
                 </div>
                 <div className="relative rounded-2xl overflow-hidden shadow-card" style={{ minHeight: '130px' }}>
                   <Image
-                    src="/images/panneau.png"
+                    src={panneauImg}
                     alt="Point de collecte Sɔrɔ"
                     fill
                     className="object-cover object-center"
+                    placeholder="blur"
                     sizes="(max-width: 768px) 100vw, 50vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -271,10 +288,11 @@ export default function Accueil() {
 
               <div className="relative rounded-2xl overflow-hidden shadow-card-hover" style={{ minHeight: '360px' }}>
                 <Image
-                  src="/images/Tel-Marche.png"
+                  src={telMarcheImg}
                   alt="Sɔrɔ au marché de Bamako"
                   fill
                   className="object-cover object-center"
+                  placeholder="blur"
                   sizes="(max-width: 768px) 100vw, 50vw"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-transparent" />
@@ -298,6 +316,7 @@ export default function Accueil() {
                     alt={t.nom}
                     fill
                     className={`object-cover ${t.position}`}
+                    placeholder="blur"
                     sizes="(max-width: 768px) 100vw, 33vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-transparent" />
@@ -326,6 +345,7 @@ export default function Accueil() {
                     alt={item.titre}
                     fill
                     className="object-cover object-center"
+                    placeholder="blur"
                     sizes="(max-width: 768px) 50vw, 25vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
@@ -342,11 +362,12 @@ export default function Accueil() {
           <section className="mb-10">
             <div className="relative w-full rounded-2xl overflow-hidden shadow-card-hover" style={{ minHeight: '200px' }}>
               <Image
-                src="/images/reunion.png"
+                src={reunionImg}
                 alt="Communauté Sɔrɔ"
                 fill
                 className="object-cover object-[center_40%]"
-                sizes="100vw"
+                placeholder="blur"
+                sizes="(max-width: 1200px) 100vw, 1200px"
               />
               <div className="absolute inset-0 bg-primary-950/80 backdrop-blur-[2px]" />
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between px-8 py-10 gap-6">

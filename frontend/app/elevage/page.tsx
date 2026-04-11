@@ -8,6 +8,7 @@ import { BottomNav } from '@/components/layout/BottomNav';
 import { CarteAnnonce } from '@/components/ui/CarteAnnonce';
 import { useElevage } from '@/lib/queries';
 import useStore from '@/store/useStore';
+import betailImg from '@/public/images/betail.png';
 
 const TYPES = [
   { value: '', label: 'Tous' },
@@ -59,11 +60,12 @@ export default function PageElevage() {
         {/* Banner */}
         <div className="relative w-full overflow-hidden" style={{ height: 'clamp(140px, 22vw, 240px)' }}>
           <Image
-            src="/images/betail.png"
+            src={betailImg}
             alt="Élevage au Mali"
             fill
             className="object-cover object-[center_40%]"
             priority
+            placeholder="blur"
             sizes="100vw"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
