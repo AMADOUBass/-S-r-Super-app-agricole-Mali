@@ -137,9 +137,13 @@ export default function PageCommandes() {
               <Link href="/produits" className="btn btn-primary btn-sm">
                 Explorer les récoltes
               </Link>
-            ) : (
-              <Link href="/vendre" className="btn btn-primary btn-sm">
+            ) : utilisateur?.role === 'AGRICULTEUR' ? (
+              <Link href="/produits/publier" className="btn btn-primary btn-sm">
                 Publier une annonce
+              </Link>
+            ) : (
+              <Link href="/produits" className="btn btn-primary btn-sm">
+                Voir les annonces
               </Link>
             )}
           </div>

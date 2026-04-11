@@ -16,6 +16,9 @@ const TYPES = [
   { value: 'CHEVRE', label: '🐐 Chèvre' },
   { value: 'VOLAILLE', label: '🐓 Volaille' },
   { value: 'ANE', label: '🫏 Âne' },
+  { value: 'CHEVAL', label: '🐴 Cheval' },
+  { value: 'CHAMEAU', label: '🐪 Chameau' },
+  { value: 'PORC', label: '🐷 Porc' },
 ];
 
 const REGIONS = [
@@ -26,6 +29,11 @@ const REGIONS = [
   { label: 'Mopti', value: 'MOPTI' },
   { label: 'Kayes', value: 'KAYES' },
   { label: 'Koulikoro', value: 'KOULIKORO' },
+  { label: 'Tombouctou', value: 'TOMBOUCTOU' },
+  { label: 'Gao', value: 'GAO' },
+  { label: 'Kidal', value: 'KIDAL' },
+  { label: 'Ménaka', value: 'MENAKA' },
+  { label: 'Taoudéni', value: 'TAOUDENIT' },
 ];
 
 export default function PageElevage() {

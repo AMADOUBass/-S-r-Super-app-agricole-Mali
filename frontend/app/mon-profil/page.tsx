@@ -26,6 +26,7 @@ export default function PageMonProfil() {
   const [region, setRegion] = useState('');
   const [chargement, setChargement] = useState(false);
   const [succes, setSucces] = useState(false);
+  const [erreur, setErreur] = useState('');
 
   useEffect(() => {
     if (!hasHydrated) return;
@@ -41,6 +42,7 @@ export default function PageMonProfil() {
     e.preventDefault();
     setChargement(true);
     setSucces(false);
+    setErreur('');
     try {
       const res = await api.put('/auth/profil', { nom, commune, region });
       setUtilisateur(res.data.data);
@@ -48,7 +50,7 @@ export default function PageMonProfil() {
       setTimeout(() => setSucces(false), 3000);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
-      alert(error.response?.data?.error || 'Erreur lors de la sauvegarde');
+      setErreur(error.response?.data?.error || 'Erreur lors de la sauvegarde. Réessayez.');
     } finally {
       setChargement(false);
     }
@@ -73,7 +75,7 @@ export default function PageMonProfil() {
             <p className="font-bold text-foreground text-lg">{utilisateur?.nom}</p>
             <p className="text-sm text-muted-fg">{utilisateur?.telephone}</p>
             <span className="inline-flex items-center mt-2 text-xs font-bold text-primary-700 bg-primary-50 border border-primary-200 px-3 py-1 rounded-full">
-              {utilisateur?.role}
+              {{ AGRICULTEUR: 'Agriculteur', ACHETEUR: 'Acheteur', BOUTIQUE: 'Boutique / Pro', ADMIN: 'Administrateur' }[utilisateur?.role ?? ''] ?? utilisateur?.role}
             </span>
           </div>
 
@@ -119,6 +121,13 @@ export default function PageMonProfil() {
                 ))}
               </select>
             </div>
+
+            {erreur && (
+              <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700 font-semibold animate-fade-up">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                {erreur}
+              </div>
+            )}
 
             {succes && (
               <div className="flex items-center gap-2 bg-primary-50 border border-primary-200 rounded-xl px-4 py-3 text-sm text-primary-700 font-semibold animate-fade-up">

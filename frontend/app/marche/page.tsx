@@ -78,7 +78,7 @@ function GraphiquePrix({ produit, region }: { produit: string; region: string })
   );
 }
 
-const REGIONS = ['BAMAKO', 'SIKASSO', 'SEGOU', 'MOPTI', 'KAYES', 'KOULIKORO'];
+const REGIONS = ['BAMAKO', 'SIKASSO', 'SEGOU', 'MOPTI', 'KAYES', 'KOULIKORO', 'TOMBOUCTOU', 'GAO', 'KIDAL', 'MENAKA', 'TAOUDENIT'];
 
 const EMOJI: Record<string, string> = {
   MIL: '🌾', SORGHO: '🌾', MAIS: '🌽', RIZ: '🍚', ARACHIDE: '🥜',

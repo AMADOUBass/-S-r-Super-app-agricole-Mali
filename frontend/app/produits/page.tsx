@@ -17,9 +17,14 @@ const TYPES = [
   { label: 'Riz', value: 'RIZ' },
   { label: 'Arachide', value: 'ARACHIDE' },
   { label: 'Niébé', value: 'NIEBE' },
+  { label: 'Sésame', value: 'SESAME' },
+  { label: 'Coton', value: 'COTON' },
   { label: 'Mangue', value: 'MANGUE' },
   { label: 'Oignon', value: 'OIGNON' },
   { label: 'Tomate', value: 'TOMATE' },
+  { label: 'Gombo', value: 'GOMBO' },
+  { label: 'Patate', value: 'PATATE_DOUCE' },
+  { label: 'Igname', value: 'IGNAME' },
   { label: 'Karité', value: 'KARITE' },
 ];
 
@@ -31,6 +36,11 @@ const REGIONS = [
   { label: 'Mopti', value: 'MOPTI' },
   { label: 'Kayes', value: 'KAYES' },
   { label: 'Koulikoro', value: 'KOULIKORO' },
+  { label: 'Tombouctou', value: 'TOMBOUCTOU' },
+  { label: 'Gao', value: 'GAO' },
+  { label: 'Kidal', value: 'KIDAL' },
+  { label: 'Ménaka', value: 'MENAKA' },
+  { label: 'Taoudéni', value: 'TAOUDENIT' },
 ];
 
 export default function PageProduits() {

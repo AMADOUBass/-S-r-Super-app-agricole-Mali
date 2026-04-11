@@ -8,7 +8,7 @@ const modules = [
   {
     href: '/produits',
     emoji: '🌾',
-    titre: 'Vendre ma récolte',
+    titre: 'Récoltes agricoles',
     sousTitre: 'Mil, arachide, mangue…',
     gradient: 'bg-gradient-to-br from-primary-700 to-primary-900',
     imageSrc: '/images/produit.png',
@@ -82,9 +82,9 @@ const temoignages = [
 ];
 
 const impacts = [
-  { image: '/images/panneau.png', titre: 'Points de collecte', desc: 'Réseau dans tout le Mali' },
-  { image: '/images/vehicule.png', titre: 'Livraison sécurisée', desc: 'Transport jusqu\'à l\'acheteur' },
-  { image: '/images/salle-reunion.png', titre: 'Équipe terrain', desc: 'Support dans chaque région' },
+  { image: '/images/panneau.png', titre: 'Présent au Mali', desc: 'Toutes les 11 régions couvertes' },
+  { image: '/images/vehicule.png', titre: 'Contact direct', desc: 'Vendeur et acheteur se parlent' },
+  { image: '/images/salle-reunion.png', titre: 'Coopératives', desc: 'Groupements agricoles connectés' },
   { image: '/images/Tel-Marche.png', titre: 'Accessible partout', desc: 'Depuis n\'importe quel téléphone' },
 ];
 
@@ -205,7 +205,7 @@ export default function Accueil() {
                 <div className="absolute bottom-0 left-0 right-0 p-5">
                   <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl px-4 py-3 mb-3 text-white text-xs font-mono leading-relaxed">
                     📱 SMS reçu :<br/>
-                    <span className="text-green-300 font-bold">Sɔrɔ:</span> Prix Mil à Bamako : 320 FCFA/kg.<br/>Votre récolte est précieuse. Vendez plus.
+                    <span className="text-green-300 font-bold">Sɔrɔ:</span> Prix Mil à Bamako : 320 FCFA/kg.<br/>Consultez les annonces sur soro.ml
                   </div>
                   <p className="text-white font-bold text-sm">Alertes prix par SMS</p>
                   <p className="text-white/60 text-xs">Sans internet — fonctionne sur tout téléphone</p>
@@ -224,8 +224,8 @@ export default function Accueil() {
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
                   <div className="absolute bottom-0 left-0 right-0 p-4">
-                    <p className="text-white font-bold text-sm">Réseau de 10 000+ agriculteurs</p>
-                    <p className="text-white/60 text-xs">Coopératives et groupements connectés</p>
+                    <p className="text-white font-bold text-sm">Agriculteurs et acheteurs connectés</p>
+                    <p className="text-white/60 text-xs">Coopératives et groupements du Mali</p>
                   </div>
                 </div>
                 <div className="relative rounded-2xl overflow-hidden shadow-card" style={{ minHeight: '130px' }}>
