@@ -31,4 +31,5 @@ npm-debug.log*
 Thumbs.db
 
 # ── Prisma ────────────────────────────────────────────────────
-backend/prisma/migrations/
+# ── Documentation locale ──────────────────────────────────────
+TODO.md
