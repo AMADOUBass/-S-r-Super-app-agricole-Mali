@@ -60,7 +60,17 @@ export const getMateriel = async (req: AuthRequest, res: Response): Promise<void
     const materiel = await prisma.materiel.findUnique({
       where: { id: req.params.id },
       include: {
-        proprietaire: { select: { id: true, nom: true, commune: true, region: true, telephone: true } },
+        proprietaire: { 
+          select: { 
+            id: true, 
+            nom: true, 
+            commune: true, 
+            region: true, 
+            telephone: true,
+            photoUrl: true,
+            avisRecus: { select: { note: true } }
+          } 
+        },
       },
     });
 
@@ -81,8 +91,14 @@ export const getMateriel = async (req: AuthRequest, res: Response): Promise<void
 // ─────────────────────────────────────────────────────────────
 export const creerMateriel = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const data = { ...req.body };
+    if (data.latitude) data.latitude = parseFloat(data.latitude);
+    if (data.longitude) data.longitude = parseFloat(data.longitude);
+    if (data.prixJour) data.prixJour = parseInt(data.prixJour);
+    if (data.caution) data.caution = parseInt(data.caution);
+
     const materiel = await prisma.materiel.create({
-      data: { ...req.body, proprietaireId: req.user!.userId },
+      data: { ...data, proprietaireId: req.user!.userId },
     });
     res.status(201).json({ success: true, data: materiel });
   } catch (err) {

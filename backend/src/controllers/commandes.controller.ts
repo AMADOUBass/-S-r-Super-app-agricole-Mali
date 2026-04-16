@@ -6,6 +6,7 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../types';
 import { initierPaiement, verifierPaiement } from '../services/flutterwave.service';
 import { envoyerSms } from '../services/sms.service';
+import { portefeuilleService } from '../services/portefeuille.service';
 
 const COMMISSION_ACHETEUR = 0.03; // 3%
 
@@ -142,6 +143,20 @@ export const getStatutCommande = async (req: AuthRequest, res: Response): Promis
             where: { id: commande.id },
             data: { statut: 'PAYE' },
           });
+
+          // Notifier le vendeur que le paiement est reçu
+          try {
+            const vendeur = await prisma.utilisateur.findUnique({ where: { id: commande.vendeurId } });
+            if (vendeur) {
+              await envoyerSms({
+                to: vendeur.telephone,
+                message: `Sɔrɔ: Paiement reçu pour la commande #${commande.id.slice(-8)}. Vous pouvez maintenant procéder à la livraison.`,
+              });
+            }
+          } catch (smsErr) {
+            console.error('[commandes/statut] SMS vendeur échoué:', smsErr);
+          }
+
           res.json({ success: true, statut: 'PAYE' });
           return;
         }
@@ -214,6 +229,56 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
 };
 
 // ─────────────────────────────────────────────────────────────
+// POST /commandes/:id/preparer — le vendeur marque comme prêt
+// ─────────────────────────────────────────────────────────────
+export const preparerCommande = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const commande = await prisma.commande.findUnique({
+      where: { id: req.params.id },
+      include: {
+        acheteur: { select: { nom: true, telephone: true } },
+        produit: { select: { type: true } },
+      },
+    });
+
+    if (!commande) {
+      res.status(404).json({ success: false, error: 'Commande introuvable' });
+      return;
+    }
+
+    if (commande.vendeurId !== req.user!.userId) {
+      res.status(403).json({ success: false, error: 'Seul le vendeur peut marquer la commande comme prête' });
+      return;
+    }
+
+    if (commande.statut !== 'PAYE') {
+      res.status(400).json({ success: false, error: `La commande doit être PAYE pour être préparée (Statut actuel: ${commande.statut})` });
+      return;
+    }
+
+    await prisma.commande.update({
+      where: { id: commande.id },
+      data: { statut: 'EN_COURS' },
+    });
+
+    // Notifier l'acheteur par SMS
+    try {
+      await envoyerSms({
+        to: commande.acheteur.telephone,
+        message: `Sɔrɔ: Votre commande de ${commande.quantiteKg} kg de ${commande.produit.type.toLowerCase()} est prête ! Contactez le vendeur pour organiser la livraison.`,
+      });
+    } catch (smsErr) {
+      console.error('[commandes/preparer] SMS acheteur échoué:', smsErr);
+    }
+
+    res.json({ success: true, message: 'Commande marquée comme prête — acheteur notifié' });
+  } catch (err) {
+    console.error('[commandes/preparer]', err);
+    res.status(500).json({ success: false, error: 'Erreur lors de la préparation' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
 // POST /commandes/:id/confirmer
 // ─────────────────────────────────────────────────────────────
 export const confirmerLivraison = async (req: AuthRequest, res: Response): Promise<void> => {
@@ -236,15 +301,31 @@ export const confirmerLivraison = async (req: AuthRequest, res: Response): Promi
       return;
     }
 
-    if (commande.statut !== 'PAYE') {
-      res.status(400).json({ success: false, error: 'La commande n\'est pas encore payée' });
+    if (!['PAYE', 'EN_COURS'].includes(commande.statut)) {
+      res.status(400).json({ success: false, error: 'La commande n\'est pas dans un état permettant la confirmation' });
       return;
     }
 
-    await prisma.commande.update({
-      where: { id: commande.id },
-      data: { statut: 'LIVRE' },
-    });
+    await prisma.$transaction([
+      prisma.commande.update({
+        where: { id: commande.id },
+        data: { statut: 'LIVRE' },
+      }),
+      // Créditer le solde du vendeur
+      prisma.portefeuille.upsert({
+        where: { utilisateurId: commande.vendeurId },
+        update: { solde: { increment: commande.montantFcfa } },
+        create: { utilisateurId: commande.vendeurId, solde: commande.montantFcfa },
+      }),
+      prisma.transactionPortefeuille.create({
+        data: {
+          portefeuilleId: (await portefeuilleService.getOrCreatePortefeuille(commande.vendeurId)).id,
+          montant: commande.montantFcfa,
+          type: 'VENTE',
+          referenceId: commande.id,
+        },
+      }),
+    ]);
 
     // Notifier le vendeur par SMS
     await envoyerSms({
@@ -284,7 +365,6 @@ export const annulerCommande = async (req: AuthRequest, res: Response): Promise<
 
     // Restaurer le stock et remettre disponible
     await prisma.$transaction([
-      prisma.commande.update({ where: { id: commande.id }, data: { statut: 'ANNULE' } }),
       prisma.produit.update({
         where: { id: commande.produitId },
         data: {
@@ -293,6 +373,21 @@ export const annulerCommande = async (req: AuthRequest, res: Response): Promise<
         },
       }),
     ]);
+
+    // Notification SMS Annulation
+    try {
+      const destinataireId = req.user!.userId === commande.acheteurId ? commande.vendeurId : commande.acheteurId;
+      const user = await prisma.utilisateur.findUnique({ where: { id: destinataireId } });
+      if (user) {
+        await envoyerSms({
+          to: user.telephone,
+          message: `Sɔrɔ: La commande #${commande.id.slice(-8)} a été annulée.`,
+        });
+      }
+    } catch (smsErr) {
+      console.error('[commandes/annuler] SMS annulation échoué:', smsErr);
+    }
+
     res.json({ success: true, message: 'Commande annulée' });
   } catch (err) {
     console.error('[commandes/annuler]', err);
@@ -350,6 +445,19 @@ export const webhookFlutterwave = async (req: Request, res: Response): Promise<v
         where: { id: tx_ref },
         data: { statut: 'PAYE', paiementStatut: status },
       });
+
+      // Notifier le vendeur
+      try {
+        const vendeur = await prisma.utilisateur.findUnique({ where: { id: commande.vendeurId } });
+        if (vendeur) {
+          await envoyerSms({
+            to: vendeur.telephone,
+            message: `Sɔrɔ: Paiement reçu pour la commande #${commande.id.slice(-8)}. Vous pouvez maintenant procéder à la livraison.`,
+          });
+        }
+      } catch (smsErr) {
+        console.error('[webhook/flutterwave] SMS vendeur échoué:', smsErr);
+      }
     } else {
       // Paiement échoué ou pending → remettre en attente
       await prisma.commande.update({

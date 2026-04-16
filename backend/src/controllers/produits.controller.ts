@@ -81,7 +81,19 @@ export const getProduit = async (req: Request, res: Response): Promise<void> => 
     const produit = await prisma.produit.findUnique({
       where: { id: req.params.id },
       include: {
-        agriculteur: { select: { id: true, nom: true, commune: true, region: true, telephone: true } },
+        agriculteur: { 
+          select: { 
+            id: true, 
+            nom: true, 
+            commune: true, 
+            region: true, 
+            telephone: true,
+            photoUrl: true,
+            avisRecus: {
+              select: { note: true }
+            }
+          } 
+        },
       },
     });
 
@@ -102,9 +114,15 @@ export const getProduit = async (req: Request, res: Response): Promise<void> => 
 // ─────────────────────────────────────────────────────────────
 export const creerProduit = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const data = { ...req.body };
+    if (data.latitude) data.latitude = parseFloat(data.latitude);
+    if (data.longitude) data.longitude = parseFloat(data.longitude);
+    if (data.prixFcfa) data.prixFcfa = parseInt(data.prixFcfa);
+    if (data.quantiteKg) data.quantiteKg = parseFloat(data.quantiteKg);
+
     const produit = await prisma.produit.create({
       data: {
-        ...req.body,
+        ...data,
         agriculteurId: req.user!.userId,
         ...(req.file?.path && { photoUrl: req.file.path }),
       },

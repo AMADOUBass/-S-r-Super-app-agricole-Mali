@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "home": "Accueil",
+    "harvest": "Récoltes",
+    "equipment": "Matériel",
+    "livestock": "Élevage",
+    "market": "Prix Marché",
+    "weather": "Météo",
+    "messages": "Messages",
+    "dashboard": "Tableau",
+    "profile": "Profil",
+    "login": "Connexion",
+    "publish": "Publier"
+  },
+  "home": {
+    "hero_title": "Vendez vos récoltes au meilleur prix",
+    "hero_subtitle": "0% de commission pour les agriculteurs. Paiement sécurisé Orange Money. Connecté à tout le Mali.",
+    "start_selling": "S'inscrire gratuitement",
+    "buy_products": "Voir les produits",
+    "platform_mali": "Plateforme agricole Mali",
+    "impact_mali": "Présent au Mali",
+    "impact_mali_desc": "Toutes les 11 régions couvertes",
+    "impact_contact": "Contact direct",
+    "impact_contact_desc": "Vendeur et acheteur se parlent"
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "negotiate": "Négocier sur Sɔrɔ",
+    "contact_whatsapp": "Contacter via WhatsApp",
+    "call": "Appeler",
+    "back": "Retour",
+    "review": "Laisser un avis",
+    "rating": "Note",
+    "verified_purchase": "Achat vérifié",
+    "no_reviews": "Aucun avis pour le moment",
+    "add_comment": "Ajouter un commentaire (optionnel)",
+    "send_review": "Envoyer l'avis",
+    "review_success": "Merci pour votre avis !",
+    "search": "Rechercher...",
+    "filter": "Filtrer",
+    "region": "Région",
+    "all": "Tout",
+    "register": "S'inscrire"
+  },
+  "explore": {
+    "title_recoltes": "Récoltes disponibles",
+    "title_elevage": "Bestiaux & Élevage",
+    "title_materiel": "Location de matériel",
+    "no_results": "Aucune annonce trouvée dans cette catégorie.",
+    "map": "Carte",
+    "list": "Liste"
+  },
+  "auth": {
+    "login_title": "Bienvenue sur Sɔrɔ",
+    "login_subtitle": "Connectez-vous pour vendre ou acheter",
+    "phone_placeholder": "Numéro de téléphone (+223)",
+    "send_code": "Envoyer le code",
+    "verify_title": "Vérification",
+    "verify_subtitle": "Entrez le code reçu par SMS",
+    "verify_btn": "Vérifier",
+    "resend": "Renvoyer le code"
+  },
+  "messages": {
+    "title": "Discussions",
+    "buying": "Achat",
+    "selling": "Vente",
+    "vocal": "Message vocal",
+    "no_messages": "Aucun message",
+    "start_chat": "Démarrer la discussion",
+    "placeholder": "Écrivez un message...",
+    "recording": "Enregistrement..."
+  },
+  "orders": {
+    "status_EN_ATTENTE": "En attente",
+    "status_PAIEMENT_INITIE": "Paiement en cours",
+    "status_PAYE": "Payé - À préparer",
+    "status_EN_COURS": "Prêt pour livraison",
+    "status_LIVRE": "Livré",
+    "status_ANNULE": "Annulé",
+    "mark_ready": "Marquer comme prêt",
+    "confirm_delivery": "Confirmer la réception"
+  },
+  "dashboard": {
+    "recent_messages": "Messages récents",
+    "view_all": "Tout voir",
+    "quick_actions": "Actions rapides",
+    "inventory": "Inventaire",
+    "market_prices": "Prix du jour"
+  }
+}

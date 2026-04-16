@@ -32,6 +32,13 @@ model Utilisateur {
   materiels   Materiel[]
   locations   Location[]
   animaux     Animal[]
+  portefeuille Portefeuille?
+  retraits    Retrait[]
+  conversationsEntamees Conversation[] @relation("AcheteurConversations")
+  conversationsRecues   Conversation[] @relation("VendeurConversations")
+  messagesEnvoyes       Message[]      @relation("ExpediteurMessages")
+  avisDonnes            Avis[]         @relation("AuteurAvis")
+  avisRecus             Avis[]         @relation("DestinataireAvis")
 
   @@map("utilisateurs")
 }
@@ -70,6 +77,8 @@ model Produit {
   disponible  Boolean     @default(true)
   commune     String
   region      Region
+  latitude    Float?
+  longitude   Float?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
@@ -77,7 +86,10 @@ model Produit {
   agriculteurId String
   agriculteur   Utilisateur @relation("AgriculteurProduits", fields: [agriculteurId], references: [id])
   commandes     Commande[]
+  conversations Conversation[]
 
+  @@index([region, disponible])
+  @@index([type])
   @@map("produits")
 }
 
@@ -120,6 +132,7 @@ model Commande {
   acheteur     Utilisateur  @relation("AcheteurCommandes", fields: [acheteurId], references: [id])
   vendeurId    String
   vendeur      Utilisateur  @relation("VendeurCommandes", fields: [vendeurId], references: [id])
+  avis         Avis?
 
   @@map("commandes")
 }
@@ -128,7 +141,7 @@ enum StatutCommande {
   EN_ATTENTE
   PAIEMENT_INITIE
   PAYE
-  CONFIRME
+  EN_COURS
   LIVRE
   ANNULE
 }
@@ -146,6 +159,8 @@ model Materiel {
   disponible  Boolean       @default(true)
   commune     String
   region      Region
+  latitude    Float?
+  longitude   Float?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
@@ -153,7 +168,10 @@ model Materiel {
   proprietaireId String
   proprietaire   Utilisateur @relation(fields: [proprietaireId], references: [id])
   locations      Location[]
+  conversations  Conversation[]
 
+  @@index([region, disponible])
+  @@index([type])
   @@map("materiels")
 }
 
@@ -190,6 +208,7 @@ model Location {
   materiel     Materiel     @relation(fields: [materielId], references: [id])
   locataireId  String
   locataire    Utilisateur  @relation(fields: [locataireId], references: [id])
+  avis         Avis?
 
   @@map("locations")
 }
@@ -217,13 +236,18 @@ model Animal {
   vendu       Boolean     @default(false)
   commune     String
   region      Region
+  latitude    Float?
+  longitude   Float?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 
   // Relations
   vendeurId   String
   vendeur     Utilisateur @relation(fields: [vendeurId], references: [id])
+  conversations Conversation[]
 
+  @@index([region, vendu])
+  @@index([type])
   @@map("animaux")
 }
 
@@ -265,4 +289,140 @@ model Otp {
   createdAt DateTime @default(now())
 
   @@map("otps")
+}
+// ─────────────────────────────────────────────────────────────
+// PORTEFEUILLE (Solde interne)
+// ─────────────────────────────────────────────────────────────
+model Portefeuille {
+  id             String    @id @default(cuid())
+  solde          Int       @default(0)           // Solde en FCFA
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  // Relations
+  utilisateurId  String    @unique
+  utilisateur    Utilisateur @relation(fields: [utilisateurId], references: [id])
+  transactions   TransactionPortefeuille[]
+
+  @@map("portefeuilles")
+}
+
+model TransactionPortefeuille {
+  id             String          @id @default(cuid())
+  montant        Int                               // Positif pour crédit, négatif pour débit
+  type           TypeTransaction
+  referenceId    String?                           // ID Commande ou Retrait
+  createdAt      DateTime        @default(now())
+
+  // Relations
+  portefeuilleId String
+  portefeuille   Portefeuille    @relation(fields: [portefeuilleId], references: [id])
+
+  @@map("transactions_portefeuille")
+}
+
+enum TypeTransaction {
+  VENTE
+  LOCATION
+  RETRAIT
+}
+
+// ─────────────────────────────────────────────────────────────
+// RETRAIT (Demande de virement Orange Money)
+// ─────────────────────────────────────────────────────────────
+model Retrait {
+  id             String        @id @default(cuid())
+  montant        Int
+  numeroPhone    String                            // Numéro de réception Orange Money/Wave
+  statut         StatutRetrait @default(EN_ATTENTE)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  // Relations
+  utilisateurId  String
+  utilisateur    Utilisateur   @relation(fields: [utilisateurId], references: [id])
+
+  @@map("retraits")
+}
+
+enum StatutRetrait {
+  EN_ATTENTE
+  VALIDE
+  REJETE
+}
+
+// ─────────────────────────────────────────────────────────────
+// MESSAGERIE P2P
+// ─────────────────────────────────────────────────────────────
+model Conversation {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Participants
+  acheteurId  String
+  acheteur    Utilisateur @relation("AcheteurConversations", fields: [acheteurId], references: [id])
+  vendeurId   String
+  vendeur     Utilisateur @relation("VendeurConversations", fields: [vendeurId], references: [id])
+
+  // Context (Lien vers l'annonce)
+  produitId   String?
+  produit     Produit?    @relation(fields: [produitId], references: [id])
+  animalId    String?
+  animal      Animal?     @relation(fields: [animalId], references: [id])
+  materielId  String?
+  materiel    Materiel?   @relation(fields: [materielId], references: [id])
+
+  messages    Message[]
+
+  @@unique([acheteurId, vendeurId, produitId])
+  @@unique([acheteurId, vendeurId, animalId])
+  @@unique([acheteurId, vendeurId, materielId])
+  @@map("conversations")
+}
+
+enum TypeMessage {
+  TEXTE
+  VOCAL
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  expediteurId   String
+  expediteur     Utilisateur  @relation("ExpediteurMessages", fields: [expediteurId], references: [id])
+  type           TypeMessage @default(TEXTE)
+  contenu        String?
+  audioUrl       String?
+  lu             Boolean  @default(false)
+  createdAt      DateTime @default(now())
+
+  @@map("messages")
+}
+
+// ─────────────────────────────────────────────────────────────
+// AVIS & NOTATIONS
+// ─────────────────────────────────────────────────────────────
+model Avis {
+  id             String      @id @default(cuid())
+  note           Int                               // Note de 1 à 5
+  commentaire    String?
+  createdAt      DateTime    @default(now())
+
+  // Celui qui laisse l'avis
+  auteurId       String
+  auteur         Utilisateur @relation("AuteurAvis", fields: [auteurId], references: [id])
+
+  // Celui qui est noté (Généralement le vendeur/propriétaire)
+  destinataireId String
+  destinataire   Utilisateur @relation("DestinataireAvis", fields: [destinataireId], references: [id])
+
+  // Context facultatif (achat ou location spécifique)
+  commandeId     String?     @unique
+  commande       Commande?   @relation(fields: [commandeId], references: [id])
+  locationId     String?     @unique
+  location       Location?   @relation(fields: [locationId], references: [id])
+
+  @@map("avis")
 }

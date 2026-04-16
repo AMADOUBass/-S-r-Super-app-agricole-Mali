@@ -4,6 +4,7 @@
 import { Response } from 'express';
 import prisma from '../lib/prisma';
 import { AuthRequest } from '../types';
+import { portefeuilleService } from '../services/portefeuille.service';
 
 // ─────────────────────────────────────────────────────────────
 // GET /admin/stats
@@ -18,6 +19,7 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
       totalMateriel,
       totalCommandes,
       commandesEnAttente,
+      retraitsEnAttente,
       commandesPayees,
       commandesLivrees,
       revenueCommissions,
@@ -29,6 +31,7 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
       prisma.materiel.count({ where: { disponible: true } }),
       prisma.commande.count(),
       prisma.commande.count({ where: { statut: 'EN_ATTENTE' } }),
+      prisma.retrait.count({ where: { statut: 'EN_ATTENTE' } }),
       prisma.commande.count({ where: { statut: 'PAYE' } }),
       prisma.commande.count({ where: { statut: 'LIVRE' } }),
       prisma.commande.aggregate({ _sum: { commission: true }, where: { statut: { in: ['PAYE', 'LIVRE'] } } }),
@@ -47,6 +50,7 @@ export const getStats = async (_req: AuthRequest, res: Response): Promise<void> 
           payees: commandesPayees,
           livrees: commandesLivrees,
         },
+        retraitsEnAttente,
         commissions: revenueCommissions._sum.commission ?? 0,
       },
     });
@@ -325,3 +329,60 @@ export const supprimerAnimal = async (req: AuthRequest, res: Response): Promise<
     res.status(500).json({ success: false, error: 'Erreur' });
   }
 };
+
+// ─────────────────────────────────────────────────────────────
+// GET /admin/retraits
+// ─────────────────────────────────────────────────────────────
+export const listerRetraits = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { page = '1', limit = '30', statut } = req.query as { page?: string; limit?: string; statut?: string };
+    const pageNum = parseInt(page);
+    const limitNum = Math.min(parseInt(limit), 100);
+    const skip = (pageNum - 1) * limitNum;
+
+    const where = statut ? { statut: statut as any } : {};
+
+    const [retraits, total] = await Promise.all([
+      prisma.retrait.findMany({
+        where,
+        skip,
+        take: limitNum,
+        orderBy: { createdAt: 'desc' },
+        include: { utilisateur: { select: { nom: true, telephone: true } } },
+      }),
+      prisma.retrait.count({ where }),
+    ]);
+
+    res.json({
+      success: true,
+      data: retraits,
+      pagination: { page: pageNum, limit: limitNum, total, totalPages: Math.ceil(total / limitNum) },
+    });
+  } catch (err) {
+    console.error('[admin/retraits]', err);
+    res.status(500).json({ success: false, error: 'Erreur lors de la récupération des retraits' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// PATCH /admin/retraits/:id
+// ─────────────────────────────────────────────────────────────
+export const traiterRetrait = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params;
+    const { statut } = req.body;
+
+    if (!['VALIDE', 'REJETE'].includes(statut)) {
+      res.status(400).json({ success: false, error: 'Statut invalide' });
+      return;
+    }
+
+    const result = await portefeuilleService.traiterRetrait(id, statut);
+    res.json({ success: true, data: result });
+  } catch (err: unknown) {
+    const error = err as Error;
+    console.error('[admin/retraits/traiter]', err);
+    res.status(400).json({ success: false, error: error.message || 'Erreur lors du traitement du retrait' });
+  }
+};
+

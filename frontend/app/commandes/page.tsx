@@ -7,6 +7,10 @@ import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { api } from '@/lib/api';
 import useStore from '@/store/useStore';
+import { useTranslation } from '@/lib/i18n';
+import { Star, CheckCircle2, Package, Loader2 } from 'lucide-react';
+import { usePreparerCommande, useConfirmerLivraison } from '@/lib/queries';
+import { toast } from 'react-hot-toast';
 
 interface Commande {
   id: string;
@@ -16,15 +20,17 @@ interface Commande {
   statut: string;
   createdAt: string;
   produit: { type: string; commune: string };
-  acheteur: { nom: string; telephone: string };
-  vendeur: { nom: string; telephone: string };
+  acheteur: { nom: string; telephone: string; id: string };
+  vendeur: { nom: string; telephone: string; id: string };
+  avis?: any;
 }
 
 const STATUT_CONFIG: Record<string, { label: string; dot: string; badge: string }> = {
   EN_ATTENTE:       { label: 'En attente',   dot: 'bg-amber-400',   badge: 'bg-amber-50 text-amber-700 border-amber-200' },
   PAIEMENT_INITIE:  { label: 'Paiement…',    dot: 'bg-blue-400',    badge: 'bg-blue-50 text-blue-700 border-blue-200' },
   PAYE:             { label: 'Payée',         dot: 'bg-primary-500', badge: 'bg-primary-50 text-primary-700 border-primary-200' },
-  LIVRE:            { label: 'Livrée',        dot: 'bg-primary-600', badge: 'bg-primary-50 text-primary-700 border-primary-200' },
+  EN_COURS:         { label: 'Prêt',          dot: 'bg-blue-500',    badge: 'bg-blue-50 text-blue-700 border-blue-200' },
+  LIVRE:            { label: 'Livrée',        dot: 'bg-emerald-600', badge: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
   ANNULE:           { label: 'Annulée',       dot: 'bg-red-400',     badge: 'bg-red-50 text-red-700 border-red-200' },
 };
 
@@ -44,6 +50,7 @@ const THUMB_BG: Record<string, string> = {
 };
 
 export default function PageCommandes() {
+  const { t } = useTranslation();
   const router = useRouter();
   const utilisateur = useStore(s => s.utilisateur);
   const token = useStore(s => s.token);
@@ -52,15 +59,43 @@ export default function PageCommandes() {
   const [chargement, setChargement] = useState(true);
   const [onglet, setOnglet] = useState<'acheteur' | 'vendeur'>('acheteur');
 
-  useEffect(() => {
-    if (!hasHydrated) return;
-    if (!token) { router.push('/connexion'); return; }
+  const { mutate: preparer, isPending: isPreping } = usePreparerCommande();
+  const { mutate: confirmer, isPending: isConfirming } = useConfirmerLivraison();
+
+  const rafraichir = () => {
     setChargement(true);
     api.get('/commandes/mes-commandes')
       .then(res => setCommandes(res.data.data ?? []))
       .catch(() => {})
       .finally(() => setChargement(false));
+  };
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (!token) { router.push('/connexion'); return; }
+    setChargement(true);
+    rafraichir();
   }, [hasHydrated, token, router]);
+
+  const onPreparer = (id: string) => {
+    preparer(id, {
+      onSuccess: () => {
+        toast.success(t('orders.status_EN_COURS'));
+        rafraichir();
+      },
+      onError: () => toast.error("Erreur")
+    });
+  };
+
+  const onConfirmer = (id: string) => {
+    confirmer(id, {
+      onSuccess: () => {
+        toast.success(t('orders.status_LIVRE'));
+        rafraichir();
+      },
+      onError: () => toast.error("Erreur")
+    });
+  };
 
   const commandesAcheteur = commandes.filter(c => c.acheteur.telephone === utilisateur?.telephone);
   const commandesVendeur = commandes.filter(c => c.vendeur.telephone === utilisateur?.telephone);
@@ -135,10 +170,10 @@ export default function PageCommandes() {
             </p>
             {onglet === 'acheteur' ? (
               <Link href="/produits" className="btn btn-primary btn-sm">
-                Explorer les récoltes
+                {t('home.buy_products')}
               </Link>
             ) : utilisateur?.role === 'AGRICULTEUR' ? (
-              <Link href="/produits/publier" className="btn btn-primary btn-sm">
+              <Link href="/vendre" className="btn btn-primary btn-sm">
                 Publier une annonce
               </Link>
             ) : (
@@ -158,44 +193,87 @@ export default function PageCommandes() {
               const autreParti = onglet === 'acheteur' ? c.vendeur.nom : c.acheteur.nom;
 
               return (
-                <Link
+                <div
                   key={c.id}
-                  href={`/commandes/${c.id}/payer`}
-                  className="card flex gap-3.5 p-3.5 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 animate-fade-up group"
+                  className="card flex flex-col p-3.5 hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-300 animate-fade-up group"
                   style={{ animationDelay: `${i * 50}ms` }}
                 >
-                  {/* Thumbnail */}
-                  <div className={`w-14 h-14 rounded-xl ${thumbBg} flex items-center justify-center flex-shrink-0 text-2xl group-hover:scale-105 transition-transform duration-300`}>
-                    {EMOJI[c.produit.type] || '📦'}
-                  </div>
+                  <div className="flex gap-3.5 flex-1">
+                    {/* Thumbnail */}
+                    <div className={`w-14 h-14 rounded-xl ${thumbBg} flex items-center justify-center flex-shrink-0 text-2xl group-hover:scale-105 transition-transform duration-300`}>
+                      {EMOJI[c.produit.type] || '📦'}
+                    </div>
 
-                  {/* Contenu */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <p className="font-bold text-foreground text-[15px] truncate">
-                          {typeLabel} · {c.quantiteKg} kg
-                        </p>
-                        <p className="text-xs text-muted-fg mt-0.5 truncate font-medium">
-                          {onglet === 'acheteur' ? 'Vendeur' : 'Acheteur'} : {autreParti}
-                        </p>
+                    {/* Contenu */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <Link href={`/commandes/${c.id}`} className="min-w-0 flex-1">
+                          <p className="font-bold text-foreground text-[15px] truncate">
+                            {typeLabel} · {c.quantiteKg} kg
+                          </p>
+                          <p className="text-xs text-muted-fg mt-0.5 truncate font-medium">
+                            {onglet === 'acheteur' ? 'Vendeur' : 'Acheteur'} : {autreParti}
+                          </p>
+                        </Link>
+                        <div className="text-right flex-shrink-0">
+                          <p className="font-black text-foreground text-sm">{total.toLocaleString('fr')} F</p>
+                          <p className="text-xs text-muted-fg/70">{date}</p>
+                        </div>
                       </div>
-                      <div className="text-right flex-shrink-0">
-                        <p className="font-black text-foreground text-sm">{total.toLocaleString('fr')} F</p>
-                        <p className="text-xs text-muted-fg/70">{date}</p>
+                      <div className="flex items-center justify-between mt-2">
+                        <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${statut.badge}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${statut.dot} ${c.statut === 'EN_ATTENTE' ? 'animate-pulse-soft' : ''}`} />
+                          {statut.label}
+                        </span>
+                        
+                        {onglet === 'acheteur' && c.statut === 'LIVRE' && !c.avis && (
+                          <Link 
+                            href={`/commandes/${c.id}/noter`}
+                            className="flex items-center gap-1.5 py-1 px-3 bg-amber-50 text-amber-700 rounded-full text-xs font-bold hover:bg-amber-100 transition-colors border border-amber-200"
+                          >
+                            <Star size={12} className="fill-amber-500 text-amber-500" />
+                            {t('common.review')}
+                          </Link>
+                        )}
+
+                        {c.avis && (
+                          <div className="flex items-center gap-1 text-xs text-amber-600 font-bold bg-amber-50/50 px-2 py-1 rounded-lg">
+                            <Star size={12} className="fill-amber-600" />
+                            {c.avis.note}/5
+                          </div>
+                        )}
+                        
+                        {(c.statut === 'EN_ATTENTE' || c.statut === 'PAIEMENT_INITIE') && onglet === 'acheteur' && (
+                           <Link href={`/commandes/${c.id}/payer`} className="text-xs font-bold text-primary-600 hover:underline">
+                             Payer
+                           </Link>
+                        )}
+
+                        {c.statut === 'PAYE' && onglet === 'vendeur' && (
+                          <button
+                            onClick={() => onPreparer(c.id)}
+                            disabled={isPreping}
+                            className="flex items-center gap-1.5 py-1 px-3 bg-blue-600 text-white rounded-full text-xs font-bold hover:bg-blue-700 transition-colors disabled:opacity-50 shadow-sm"
+                          >
+                            {isPreping ? <Loader2 size={12} className="animate-spin" /> : <Package size={12} />}
+                            {t('orders.mark_ready')}
+                          </button>
+                        )}
+
+                        {(c.statut === 'PAYE' || c.statut === 'EN_COURS') && onglet === 'acheteur' && (
+                          <button
+                            onClick={() => onConfirmer(c.id)}
+                            disabled={isConfirming}
+                            className="flex items-center gap-1.5 py-1 px-3 bg-primary-600 text-white rounded-full text-xs font-bold hover:bg-primary-700 transition-colors disabled:opacity-50 shadow-sm"
+                          >
+                            {isConfirming ? <Loader2 size={12} className="animate-spin" /> : <CheckCircle2 size={12} />}
+                            {t('orders.confirm_delivery')}
+                          </button>
+                        )}
                       </div>
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <span className={`inline-flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1 rounded-full border ${statut.badge}`}>
-                        <span className={`w-1.5 h-1.5 rounded-full ${statut.dot} ${c.statut === 'EN_ATTENTE' ? 'animate-pulse-soft' : ''}`} />
-                        {statut.label}
-                      </span>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2.5" className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <path d="M9 18l6-6-6-6"/>
-                      </svg>
                     </div>
                   </div>
-                </Link>
+                </div>
               );
             })}
           </div>

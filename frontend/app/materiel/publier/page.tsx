@@ -31,9 +31,37 @@ export default function PagePublierMateriel() {
     description: '',
     commune: '',
     region: 'BAMAKO',
+    latitude: '' as string | number,
+    longitude: '' as string | number,
   });
   const [chargement, setChargement] = useState(false);
   const [erreur, setErreur] = useState('');
+  const [geolocating, setGeolocating] = useState(false);
+
+  const handleGeolocation = () => {
+    if (!navigator.geolocation) {
+      setErreur("La géolocalisation n'est pas supportée par votre navigateur");
+      return;
+    }
+
+    setGeolocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setForm(f => ({ 
+          ...f, 
+          latitude: pos.coords.latitude, 
+          longitude: pos.coords.longitude 
+        }));
+        setGeolocating(false);
+      },
+      (err) => {
+        console.error(err);
+        setErreur("Impossible de récupérer votre position. Assurez-vous d'avoir activé le GPS.");
+        setGeolocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +74,8 @@ export default function PagePublierMateriel() {
         ...form,
         prixJour: parseInt(form.prixJour),
         caution: parseInt(form.caution),
+        latitude: form.latitude !== '' ? Number(form.latitude) : undefined,
+        longitude: form.longitude !== '' ? Number(form.longitude) : undefined,
       });
       router.push('/materiel');
     } catch (err: unknown) {
@@ -114,6 +144,36 @@ export default function PagePublierMateriel() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={handleGeolocation}
+                disabled={geolocating}
+                className={`flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                  form.latitude 
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+                    : 'bg-white border-border text-foreground-3 hover:bg-surface-2'
+                }`}
+              >
+                {geolocating ? (
+                  <>
+                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+                    Recherche GPS...
+                  </>
+                ) : form.latitude ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17L4 12"/></svg>
+                    Position enregistrée ({Number(form.latitude).toFixed(3)}, {Number(form.longitude).toFixed(3)})
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Ajouter ma position exacte
+                  </>
+                )}
+              </button>
             </div>
           </div>
 

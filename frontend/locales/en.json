@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "home": "Home",
+    "harvest": "Harvests",
+    "equipment": "Equipment",
+    "livestock": "Livestock",
+    "market": "Market Price",
+    "weather": "Weather",
+    "messages": "Messages",
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "login": "Login",
+    "publish": "Publish"
+  },
+  "home": {
+    "hero_title": "Sell your harvests at the best price",
+    "hero_subtitle": "0% commission for farmers. Secure Orange Money payment. Connected everywhere in Mali.",
+    "start_selling": "Register for free",
+    "buy_products": "View products",
+    "platform_mali": "Mali Agricultural Platform",
+    "impact_mali": "Present in Mali",
+    "impact_mali_desc": "All 11 regions covered",
+    "impact_contact": "Direct contact",
+    "impact_contact_desc": "Buyer and seller talk directly"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "negotiate": "Negotiate on Sɔrɔ",
+    "contact_whatsapp": "Contact via WhatsApp",
+    "call": "Call",
+    "back": "Back",
+    "review": "Leave a review",
+    "rating": "Rating",
+    "verified_purchase": "Verified Purchase",
+    "no_reviews": "No reviews yet",
+    "add_comment": "Add a comment (optional)",
+    "send_review": "Send review",
+    "review_success": "Thank you for your review!",
+    "search": "Search...",
+    "filter": "Filter",
+    "region": "Region",
+    "all": "All",
+    "register": "Register"
+  },
+  "explore": {
+    "title_recoltes": "Available Harvests",
+    "title_elevage": "Livestock & Cattle",
+    "title_materiel": "Equipment Rental",
+    "no_results": "No results found in this category.",
+    "map": "Map",
+    "list": "List"
+  },
+  "auth": {
+    "login_title": "Welcome to Sɔrɔ",
+    "login_subtitle": "Login to buy or sell",
+    "phone_placeholder": "Phone number (+223)",
+    "send_code": "Send code",
+    "verify_title": "Verification",
+    "verify_subtitle": "Enter the code received by SMS",
+    "verify_btn": "Verify",
+    "resend": "Resend code"
+  },
+  "messages": {
+    "title": "Discussions",
+    "buying": "Buying",
+    "selling": "Selling",
+    "vocal": "Voice message",
+    "no_messages": "No messages",
+    "start_chat": "Start discussion",
+    "placeholder": "Write a message...",
+    "recording": "Recording..."
+  },
+  "orders": {
+    "status_EN_ATTENTE": "Pending",
+    "status_PAIEMENT_INITIE": "Payment initiated",
+    "status_PAYE": "Paid - To prepare",
+    "status_EN_COURS": "Ready for delivery",
+    "status_LIVRE": "Delivered",
+    "status_ANNULE": "Cancelled",
+    "mark_ready": "Mark as ready",
+    "confirm_delivery": "Confirm reception"
+  },
+  "dashboard": {
+    "recent_messages": "Recent messages",
+    "view_all": "View all",
+    "quick_actions": "Quick actions",
+    "inventory": "Inventory",
+    "market_prices": "Market prices"
+  }
+}

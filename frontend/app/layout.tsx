@@ -4,6 +4,7 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { Providers } from './providers';
+import { OfflineIndicator } from '@/components/ui/OfflineIndicator';
 
 export const metadata: Metadata = {
   title: 'Sɔrɔ — Marché Agricole Mali',
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <Providers>
           {children}
         </Providers>
+        <OfflineIndicator />
       </body>
     </html>
   );

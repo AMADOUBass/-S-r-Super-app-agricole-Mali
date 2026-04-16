@@ -40,6 +40,8 @@ export default function PageVendre() {
     description: '',
     commune: utilisateur?.commune || '',
     region: utilisateur?.region || 'BAMAKO',
+    latitude: '' as string | number,
+    longitude: '' as string | number,
   });
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
@@ -47,6 +49,7 @@ export default function PageVendre() {
   const [erreur, setErreur] = useState('');
   const [prixMarche, setPrixMarche] = useState<number | null>(null);
   const [chargementPrix, setChargementPrix] = useState(false);
+  const [geolocating, setGeolocating] = useState(false);
 
   // Récupère le prix du marché quand produit + région changent
   useEffect(() => {
@@ -64,6 +67,31 @@ export default function PageVendre() {
       .finally(() => setChargementPrix(false));
   }, [form.type, form.region]);
 
+  const handleGeolocation = () => {
+    if (!navigator.geolocation) {
+      setErreur("La géolocalisation n'est pas supportée par votre navigateur");
+      return;
+    }
+
+    setGeolocating(true);
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setForm(f => ({ 
+          ...f, 
+          latitude: pos.coords.latitude, 
+          longitude: pos.coords.longitude 
+        }));
+        setGeolocating(false);
+      },
+      (err) => {
+        console.error(err);
+        setErreur("Impossible de récupérer votre position. Assurez-vous d'avoir activé le GPS.");
+        setGeolocating(false);
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
+    );
+  };
+
   const handlePhoto = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -80,7 +108,9 @@ export default function PageVendre() {
 
     try {
       const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
+      Object.entries(form).forEach(([k, v]) => {
+        if (v !== '') formData.append(k, String(v));
+      });
       formData.set('quantiteKg', String(parseFloat(form.quantiteKg)));
       formData.set('prixFcfa', String(parseInt(form.prixFcfa)));
       if (photo) formData.append('photo', photo);
@@ -158,6 +188,39 @@ export default function PageVendre() {
                   required
                 />
               </div>
+            </div>
+
+            <div className="mt-3">
+              <button
+                type="button"
+                onClick={handleGeolocation}
+                disabled={geolocating}
+                className={`flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border transition-all duration-200 ${
+                  form.latitude 
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
+                    : 'bg-white border-border text-foreground-3 hover:bg-surface-2'
+                }`}
+              >
+                {geolocating ? (
+                  <>
+                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+                    Recherche GPS...
+                  </>
+                ) : form.latitude ? (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17L4 12"/></svg>
+                    Position enregistrée ({Number(form.latitude).toFixed(3)}, {Number(form.longitude).toFixed(3)})
+                  </>
+                ) : (
+                  <>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    Ajouter ma position exacte
+                  </>
+                )}
+              </button>
+              <p className="text-[10px] text-muted-fg mt-1.5 ml-1">
+                Aide les acheteurs à vous trouver plus facilement sur la carte.
+              </p>
             </div>
           </div>
 

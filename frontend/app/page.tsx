@@ -1,8 +1,10 @@
+'use client';
 import Link from 'next/link';
 import Image from 'next/image';
 import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { GrandBouton } from '@/components/ui/GrandBouton';
+import { useTranslation } from '@/lib/i18n';
 import heroImg from '@/public/images/transaction-agri-elev.png';
 import dameImg from '@/public/images/dame-testimo-phone.png';
 import groupeImg from '@/public/images/group-testimo.png';
@@ -102,8 +104,10 @@ const impacts = [
 ];
 
 export default function Accueil() {
+  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-surface-2 flex flex-col">
+
       <Header />
 
       <main className="flex-1 pb-24 md:pb-8">
@@ -130,26 +134,25 @@ export default function Accueil() {
                   <span className="animate-ping-slow absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-green-400" />
                 </span>
-                <span className="text-white/90 text-xs font-semibold tracking-wide">Plateforme agricole Mali</span>
+                <span className="text-white/90 text-xs font-semibold tracking-wide">{t('home.platform_mali')}</span>
               </div>
 
               <h1 className="animate-fade-up text-[1.75rem] sm:text-4xl md:text-5xl lg:text-6xl font-black text-white leading-[1.1] mb-3 max-w-2xl" style={{textShadow:'0 2px 20px rgba(0,0,0,0.5)'}}>
-                Vendez vos récoltes<br />
-                <span className="text-green-300">au meilleur prix</span>
+                {t('home.hero_title')}
               </h1>
               <p className="animate-fade-up text-white/70 text-sm md:text-base mb-6 max-w-md">
-                0% de commission pour les agriculteurs. Paiement sécurisé Orange Money. Connecté à tout le Mali.
+                {t('home.hero_subtitle')}
               </p>
 
               <div className="animate-fade-up flex flex-col sm:flex-row gap-3">
                 <Link href="/inscription"
                   className="inline-flex items-center justify-center gap-2 bg-white text-primary-800 font-bold px-6 py-3.5 rounded-xl shadow-lg text-sm md:text-base hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200 active:scale-95">
-                  S'inscrire gratuitement
+                  {t('home.start_selling')}
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
                 </Link>
                 <Link href="/produits"
                   className="inline-flex items-center justify-center gap-2 bg-white/15 backdrop-blur-md border border-white/25 text-white font-semibold px-6 py-3.5 rounded-xl text-sm md:text-base hover:bg-white/25 transition-all duration-200">
-                  Voir les annonces
+                  {t('home.buy_products')}
                 </Link>
               </div>
             </div>

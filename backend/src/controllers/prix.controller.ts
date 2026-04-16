@@ -19,22 +19,32 @@ export const getPrixDuJour = async (req: Request, res: Response): Promise<void> 
     if (produit) where.produit = produit;
     if (region) where.region = region;
 
-    // Si pas de données du jour, prendre les 7 derniers jours
-    let prix = await prisma.prixMarche.findMany({
+    // Récupérer les prix les plus récents par produit
+    // On récupère tout sur la période, puis on filtre en JS pour être sûr d'avoir le dernier de chaque
+    const prixData = await prisma.prixMarche.findMany({
       where,
       orderBy: { date: 'desc' },
     });
 
-    if (prix.length === 0) {
+    // Fallback si rien aujourd'hui
+    let finalPrix = prixData;
+    if (finalPrix.length === 0) {
       const semaineDerniere = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-      prix = await prisma.prixMarche.findMany({
+      finalPrix = await prisma.prixMarche.findMany({
         where: { ...where, date: { gte: semaineDerniere } },
         orderBy: { date: 'desc' },
-        take: 100,
       });
     }
 
-    res.json({ success: true, data: prix });
+    // Filtrage pour ne garder que le dernier prix par produit unique
+    const uniqueMap = new Map();
+    finalPrix.forEach((p: any) => {
+      if (!uniqueMap.has(p.produit)) {
+        uniqueMap.set(p.produit, p);
+      }
+    });
+
+    res.json({ success: true, data: Array.from(uniqueMap.values()) });
   } catch (err) {
     console.error('[prix/jour]', err);
     res.status(500).json({ success: false, error: 'Erreur lors de la récupération des prix' });

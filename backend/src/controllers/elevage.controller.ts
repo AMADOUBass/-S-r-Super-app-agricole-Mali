@@ -60,7 +60,17 @@ export const getAnimal = async (req: Request, res: Response): Promise<void> => {
     const animal = await prisma.animal.findUnique({
       where: { id: req.params.id },
       include: {
-        vendeur: { select: { id: true, nom: true, commune: true, region: true, telephone: true } },
+        vendeur: { 
+          select: { 
+            id: true, 
+            nom: true, 
+            commune: true, 
+            region: true, 
+            telephone: true,
+            photoUrl: true,
+            avisRecus: { select: { note: true } }
+          } 
+        },
       },
     });
 
@@ -81,8 +91,15 @@ export const getAnimal = async (req: Request, res: Response): Promise<void> => {
 // ─────────────────────────────────────────────────────────────
 export const creerAnimal = async (req: AuthRequest, res: Response): Promise<void> => {
   try {
+    const data = { ...req.body };
+    if (data.latitude) data.latitude = parseFloat(data.latitude);
+    if (data.longitude) data.longitude = parseFloat(data.longitude);
+    if (data.prixFcfa) data.prixFcfa = parseInt(data.prixFcfa);
+    if (data.age) data.age = parseInt(data.age);
+    if (data.poidsKg) data.poidsKg = parseFloat(data.poidsKg);
+
     const animal = await prisma.animal.create({
-      data: { ...req.body, vendeurId: req.user!.userId },
+      data: { ...data, vendeurId: req.user!.userId },
     });
     res.status(201).json({ success: true, data: animal });
   } catch (err) {

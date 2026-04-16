@@ -26,8 +26,8 @@ const withPWA = require('next-pwa')({
       },
     },
     {
-      // Cache les appels API (produits, prix, météo)
-      urlPattern: /\/api\/.*/,
+      // Cache les appels API Axios / Fetch vers le backend (produits, prix, météo, etc.)
+      urlPattern: /^https?:\/\/.*\/(produits|prix|elevage|materiel|meteo).*/i,
       handler: 'NetworkFirst',
       options: {
         cacheName: 'soro-api',

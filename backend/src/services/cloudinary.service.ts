@@ -21,16 +21,19 @@ class CloudinaryStorageV2 implements StorageEngine {
     file: Express.Multer.File,
     cb: (error: Error | null, info?: Partial<Express.Multer.File> & { path?: string; filename?: string }) => void
   ) {
-    const folder = file.fieldname === 'photo' ? 'soro/annonces' : 'soro/avatars';
+    const isAudio = file.mimetype.startsWith('audio/') || file.fieldname === 'audio';
+    const folder = isAudio ? 'soro/vocals' : (file.fieldname === 'photo' ? 'soro/annonces' : 'soro/avatars');
 
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder,
-        transformation: [
-          { width: 800, height: 800, crop: 'limit' },
-          { quality: 'auto:low', fetch_format: 'webp' },
-        ],
-        resource_type: 'image',
+        resource_type: isAudio ? 'video' : 'image', // 'video' is used for audio in Cloudinary v2
+        ...(isAudio ? {} : {
+          transformation: [
+            { width: 800, height: 800, crop: 'limit' },
+            { quality: 'auto:low', fetch_format: 'webp' },
+          ],
+        }),
       },
       (error, result) => {
         if (error || !result) {
@@ -84,6 +87,18 @@ export const uploadPhoto = multer({
   },
 }).single('photo');
 
+export const uploadAudio = multer({
+  storage: cloudinaryConfigured ? new CloudinaryStorageV2() : multer.memoryStorage(),
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB max pour l'audio
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype.startsWith('audio/') || file.mimetype === 'video/webm' || file.mimetype === 'application/octet-stream') {
+      cb(null, true);
+    } else {
+      cb(null, true); // On est plus indulgent car les navigateurs mobiles envoient des types variés pour les blobs
+    }
+  },
+}).single('audio');
+
 // ─────────────────────────────────────────────────────────────
 // Supprimer une photo par son public_id Cloudinary
 // ─────────────────────────────────────────────────────────────
@@ -91,10 +106,10 @@ export const supprimerPhoto = async (photoUrl: string): Promise<void> => {
   try {
     // Extraire le public_id depuis l'URL Cloudinary
     // URL format: https://res.cloudinary.com/cloud/image/upload/v123/soro/annonces/abc123.webp
-    const match = photoUrl.match(/\/soro\/(annonces|avatars)\/([^.]+)/);
+    const match = photoUrl.match(/\/soro\/(annonces|avatars|vocals)\/([^.]+)/);
     if (!match) return;
     const publicId = `soro/${match[1]}/${match[2]}`;
-    await cloudinary.uploader.destroy(publicId);
+    await cloudinary.uploader.destroy(publicId, { resource_type: match[1] === 'vocals' ? 'video' : 'image' });
   } catch (err) {
     console.error('[Cloudinary] Erreur suppression:', err);
   }

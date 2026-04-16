@@ -1,0 +1,91 @@
+{
+  "nav": {
+    "home": "Sinsin",
+    "harvest": "Sene-fenw",
+    "equipment": "Minɛnw",
+    "livestock": "Baganw",
+    "market": "Sugu Da",
+    "weather": "Kaba-ko",
+    "messages": "Kibaruw",
+    "dashboard": "Baara-yoro",
+    "profile": "I tɔgɔ",
+    "login": "I don",
+    "publish": "Lase"
+  },
+  "home": {
+    "hero_title": "I ka sɛnɛ-fɛnw feere ni sɔngɔ bɛnnen ye",
+    "hero_subtitle": "Sɔrɔ bɛ agriculteur-w dɛmɛ. 0% sara. Orange Money sara. Mali bɛɛ bɛ jɛ.",
+    "start_selling": "I tɔgɔ sɛbɛn fu",
+    "buy_products": "Fɛnw filɛ",
+    "platform_mali": "Mali sènerɛn jɛkulu",
+    "impact_mali": "A bɛ Mali bɛɛ kɔnɔ",
+    "impact_mali_desc": "Maraw bɛɛ bɛ kɔnɔ",
+    "impact_contact": "Kunben suguman",
+    "impact_contact_desc": "Feerekɛla ni sanla bɛ kuma"
+  },
+  "common": {
+    "loading": "A bɛ na...",
+    "error": "Filen dɔ kɛra",
+    "negotiate": "Sɔngɔ bɛn Sɔrɔ kan",
+    "contact_whatsapp": "WhatsApp kuma",
+    "call": "Wele-kan",
+    "back": "Kɔsegi",
+    "review": "I ka hakilina di",
+    "rating": "Sariyajuru",
+    "verified_purchase": "Sanni tilennen",
+    "no_reviews": "Hakilina si ma di fɔlɔ",
+    "add_comment": "Kuma dɔ fara a kan",
+    "send_review": "A ci",
+    "review_success": "I ni ce!",
+    "search": "Ɲini...",
+    "filter": "Sagu",
+    "region": "Mara",
+    "all": "Bɛɛ",
+    "register": "I tɔgɔ sɛbɛn"
+  },
+  "explore": {
+    "title_recoltes": "Sɛnɛ-fɛn sɔrɔtaw",
+    "title_elevage": "Baganw & Kɛlɛ",
+    "title_materiel": "Minɛnw doni-yoro",
+    "no_results": "Fɛn si ma sɔrɔ yan.",
+    "map": "Jukuru",
+    "list": "Tɔgɔ-sɛbɛn"
+  },
+  "auth": {
+    "login_title": "I bisimila Sɔrɔ kan",
+    "login_subtitle": "Don i ka baara-yoro la",
+    "phone_placeholder": "Telefɔnu nimɔrɔ (+223)",
+    "send_code": "Code ci",
+    "verify_title": "Sariyajuru",
+    "verify_subtitle": "Code min sera i ma SMS la",
+    "verify_btn": "Sariyajuru",
+    "resend": "Code ci tuguni"
+  },
+  "messages": {
+    "title": "Baro-yoro",
+    "buying": "Sanni",
+    "selling": "Feere",
+    "vocal": "Kuma-kan",
+    "no_messages": "Kibaru si tɛ yan",
+    "start_chat": "Baro daminɛ",
+    "placeholder": "Kuma sɛbɛn...",
+    "recording": "Kuma bɛ minɛna..."
+  },
+  "orders": {
+    "status_EN_ATTENTE": "A bɛ kɔnɔna la",
+    "status_PAIEMENT_INITIE": "Sara bɛ kɛna",
+    "status_PAYE": "Sara kɛra",
+    "status_EN_COURS": "A labɛnna",
+    "status_LIVRE": "A sera",
+    "status_ANNULE": "A tiɲɛna",
+    "mark_ready": "A labɛnna",
+    "confirm_delivery": "A sera n ma"
+  },
+  "dashboard": {
+    "recent_messages": "Kuma kura",
+    "view_all": "Bɛɛ lajɛ",
+    "quick_actions": "Baara teliw",
+    "inventory": "Nafolo",
+    "market_prices": "Songo kura"
+  }
+}

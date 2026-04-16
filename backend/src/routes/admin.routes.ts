@@ -9,6 +9,7 @@ import {
   listerUtilisateurs, toggleUtilisateur,
   listerMaterielAdmin, toggleMateriel, supprimerMateriel,
   listerAnimauxAdmin, supprimerAnimal,
+  listerRetraits, traiterRetrait,
 } from '../controllers/admin.controller';
 
 const router = Router();
@@ -33,5 +34,8 @@ router.delete('/materiel/:id', supprimerMateriel);
 
 router.get('/animaux', listerAnimauxAdmin);
 router.delete('/animaux/:id', supprimerAnimal);
+
+router.get('/retraits', listerRetraits);
+router.patch('/retraits/:id', traiterRetrait);
 
 export default router;

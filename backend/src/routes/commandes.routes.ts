@@ -11,6 +11,7 @@ import {
   getMesCommandes,
   getStatutCommande,
   payerCommande,
+  preparerCommande,
   confirmerLivraison,
   annulerCommande,
   webhookFlutterwave,
@@ -34,6 +35,7 @@ router.post("/", authentifier, valider(schemaCommande), creerCommande);
 router.get("/mes-commandes", authentifier, getMesCommandes);
 router.get("/:id/statut", authentifier, getStatutCommande);
 router.post("/:id/payer", authentifier, payerCommande);
+router.post("/:id/preparer", authentifier, preparerCommande);
 router.post("/:id/confirmer", authentifier, confirmerLivraison);
 router.post("/:id/annuler", authentifier, annulerCommande);
 

@@ -17,8 +17,14 @@ import elevageRoutes from './routes/elevage.routes';
 import prixRoutes from './routes/prix.routes';
 import meteoRoutes from './routes/meteo.routes';
 import adminRoutes from './routes/admin.routes';
+import portefeuilleRoutes from './routes/portefeuille.routes';
+import messageRoutes from './routes/messages.routes';
+import avisRoutes from './routes/avis.routes';
 
 const app = express();
+
+// Nécessaire pour Railway/Proxies afin de récupérer la vraie IP du client
+app.set('trust proxy', 1);
 
 // ─── Middlewares de sécurité ──────────────────────────────────
 app.use(helmet());
@@ -52,6 +58,9 @@ app.use('/elevage', elevageRoutes);
 app.use('/prix', prixRoutes);
 app.use('/meteo', meteoRoutes);
 app.use('/admin', adminRoutes);
+app.use('/portefeuille', portefeuilleRoutes);
+app.use('/conversations', messageRoutes);
+app.use('/avis', avisRoutes);
 
 // ─── Santé du serveur ─────────────────────────────────────────
 app.get('/health', (_req, res) => {

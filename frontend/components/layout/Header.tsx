@@ -2,10 +2,12 @@
 
 import Link from 'next/link';
 import Image from 'next/image';
+import { useTranslation } from '@/lib/i18n';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useRef, useEffect } from 'react';
-import { ArrowLeft, ChevronDown, ArrowRight, LayoutDashboard, User, ShieldCheck, Plus, LogOut } from 'lucide-react';
+import { ArrowLeft, ChevronDown, ArrowRight, LayoutDashboard, User, ShieldCheck, Plus, LogOut, Globe, MessageSquare } from 'lucide-react';
 import useStore from '@/store/useStore';
+import { useConversations } from '@/lib/queries';
 
 interface HeaderProps {
   titre?: string;
@@ -13,11 +15,11 @@ interface HeaderProps {
 }
 
 const navLinks = [
-  { href: '/produits', label: 'Récoltes' },
-  { href: '/materiel', label: 'Matériel' },
-  { href: '/elevage', label: 'Élevage' },
-  { href: '/marche', label: 'Prix marché' },
-  { href: '/meteo', label: 'Météo' },
+  { href: '/produits', labelKey: 'nav.harvest' },
+  { href: '/materiel', labelKey: 'nav.equipment' },
+  { href: '/elevage', labelKey: 'nav.livestock' },
+  { href: '/marche', labelKey: 'nav.market' },
+  { href: '/meteo', labelKey: 'nav.weather' },
 ];
 
 function Logo() {
@@ -34,17 +36,35 @@ function Logo() {
 }
 
 export function Header({ titre, retour }: HeaderProps) {
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
-  const { utilisateur, deconnecter } = useStore(s => ({ utilisateur: s.utilisateur, deconnecter: s.deconnecter }));
+  const { utilisateur, deconnecter, locale, setLocale, token } = useStore(s => ({
+    utilisateur: s.utilisateur,
+    deconnecter: s.deconnecter,
+    locale: s.locale,
+    setLocale: s.setLocale,
+    token: s.token
+  }));
+  const { data: conversations } = useConversations();
   const [menuOuvert, setMenuOuvert] = useState(false);
+  const [langOuvert, setLangOuvert] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const langRef = useRef<HTMLDivElement>(null);
+
+  const toggleLocale = () => {
+    const next: Record<string, 'FR' | 'EN' | 'BM'> = { FR: 'EN', EN: 'BM', BM: 'FR' };
+    setLocale(next[locale]);
+  };
 
   // Ferme le menu si clic extérieur
   useEffect(() => {
     const handler = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOuvert(false);
+      }
+      if (langRef.current && !langRef.current.contains(e.target as Node)) {
+        setLangOuvert(false);
       }
     };
     document.addEventListener('mousedown', handler);
@@ -94,7 +114,7 @@ export function Header({ titre, retour }: HeaderProps) {
                     }`}
                   >
                     {active && <span className="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-primary-600" />}
-                    {link.label}
+                    {t(link.labelKey)}
                   </Link>
                 );
               })}
@@ -104,6 +124,50 @@ export function Header({ titre, retour }: HeaderProps) {
 
         {/* Droite */}
         <div className="flex items-center gap-2">
+          {/* Messages Desktop */}
+          {token && (
+            <Link 
+              href="/messages"
+              className="hidden md:flex w-9 h-9 items-center justify-center rounded-xl hover:bg-surface-3 transition-colors text-foreground-3 border border-border/40 relative"
+              aria-label={t('nav.messages')}
+            >
+              <MessageSquare size={19} strokeWidth={2} />
+              {Array.isArray(conversations) && conversations.some((c: any) => 
+                c.messages[0] && !c.messages[0].lu && c.messages[0].expediteurId !== utilisateur?.id
+              ) && (
+                <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-primary-600 border-2 border-white rounded-full animate-pulse" />
+              )}
+            </Link>
+          )}
+
+          {/* Sélecteur de langue */}
+          <div className="relative" ref={langRef}>
+            <button
+              onClick={() => setLangOuvert(!langOuvert)}
+              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-surface-3 transition-colors text-foreground-3 border border-border/40"
+              aria-label="Changer de langue"
+            >
+              <span className="text-[10px] font-bold">{locale}</span>
+            </button>
+
+            {langOuvert && (
+              <div className="absolute right-0 top-full mt-2 w-28 bg-white rounded-2xl shadow-float border border-border/40 overflow-hidden animate-scale-in z-50 py-1">
+                {(['FR', 'EN', 'BM'] as const).map((l) => (
+                  <button
+                    key={l}
+                    onClick={() => { setLocale(l); setLangOuvert(false); }}
+                    className={`w-full flex items-center justify-between px-4 py-2 text-xs font-bold transition-colors ${
+                      locale === l ? 'text-primary-700 bg-primary-50' : 'text-muted-fg hover:text-foreground hover:bg-surface-2'
+                    }`}
+                  >
+                    {l === 'FR' ? 'Français' : l === 'EN' ? 'English' : 'Bamanankan'}
+                    {locale === l && <div className="w-1 h-1 rounded-full bg-primary-600" />}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
           {utilisateur ? (
             <div className="relative" ref={menuRef}>
               <button
@@ -136,7 +200,7 @@ export function Header({ titre, retour }: HeaderProps) {
                       <Link href={lienTableau} onClick={() => setMenuOuvert(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
                         <LayoutDashboard size={15} strokeWidth={2} />
-                        Mon espace
+                        {t('nav.dashboard')}
                       </Link>
                     )}
 
@@ -144,7 +208,7 @@ export function Header({ titre, retour }: HeaderProps) {
                       <Link href="/mon-profil" onClick={() => setMenuOuvert(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
                         <User size={15} strokeWidth={2} />
-                        Mon profil
+                        {t('nav.profile')}
                       </Link>
                     )}
 
@@ -157,10 +221,18 @@ export function Header({ titre, retour }: HeaderProps) {
                     )}
 
                     {utilisateur.role === 'AGRICULTEUR' && (
+                      <Link href="/messages" onClick={() => setMenuOuvert(false)}
+                        className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
+                        <MessageSquare size={15} strokeWidth={2} />
+                        {t('nav.messages')}
+                      </Link>
+                    )}
+
+                    {utilisateur.role === 'AGRICULTEUR' && (
                       <Link href="/vendre" onClick={() => setMenuOuvert(false)}
                         className="flex items-center gap-3 px-4 py-2.5 text-sm text-foreground-2 hover:bg-surface-2 transition-colors">
                         <Plus size={15} strokeWidth={2} />
-                        Publier une annonce
+                        {t('nav.publish')}
                       </Link>
                     )}
                   </div>
@@ -169,7 +241,7 @@ export function Header({ titre, retour }: HeaderProps) {
                     <button onClick={handleDeconnecter}
                       className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
                       <LogOut size={15} strokeWidth={2} />
-                      Se déconnecter
+                      {t('auth.logout') || 'Déconnexion'}
                     </button>
                   </div>
                 </div>
@@ -179,11 +251,11 @@ export function Header({ titre, retour }: HeaderProps) {
             <div className="flex items-center gap-2">
               <Link href="/connexion"
                 className="hidden md:inline-flex items-center gap-1.5 text-sm font-medium text-foreground-3 hover:text-foreground px-3 py-2 rounded-xl hover:bg-surface-3 transition-all">
-                Connexion
+                {t('nav.login')}
               </Link>
               <Link href="/inscription"
                 className="inline-flex items-center gap-1.5 bg-primary-700 hover:bg-primary-800 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-sm hover:shadow-md hover:-translate-y-px transition-all duration-200 active:scale-95">
-                S'inscrire
+                {t('common.register') || "S'inscrire"}
                 <ArrowRight size={14} strokeWidth={2.5} />
               </Link>
             </div>

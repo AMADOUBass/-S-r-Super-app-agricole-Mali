@@ -7,8 +7,18 @@ import { inscrire, verifierOtp, renvoyerOtp, modifierProfil, connexionAdmin } fr
 import { valider } from '../middleware/validate.middleware';
 import { authentifier } from '../middleware/auth.middleware';
 import { z } from 'zod';
+import rateLimit from 'express-rate-limit';
 
 const router = Router();
+
+// Limiteur de requêtes spécifique aux OTP (ex: max 5 requêtes par 15 minutes)
+const otpLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 20, // Plus souple pour le développement et les tests (20 par 15min)
+  message: { success: false, error: 'Trop de requêtes, veuillez réessayer dans 15 minutes.' },
+  standardHeaders: true, // Retourne l'info de rate limit dans les headers
+  legacyHeaders: false,
+});
 
 const schemaInscription = z.object({
   telephone: z.string().regex(/^\+223\d{8}$/, 'Numéro malien requis (+223XXXXXXXX)'),
@@ -27,13 +37,13 @@ const schemaVerification = z.object({
 });
 
 // POST /auth/register
-router.post('/register', valider(schemaInscription), inscrire);
+router.post('/register', otpLimiter, valider(schemaInscription), inscrire);
 
 // POST /auth/verify
-router.post('/verify', valider(schemaVerification), verifierOtp);
+router.post('/verify', otpLimiter, valider(schemaVerification), verifierOtp);
 
 // POST /auth/resend — renvoie un OTP (limite de débit à implémenter)
-router.post('/resend', valider(z.object({ telephone: z.string() })), renvoyerOtp);
+router.post('/resend', otpLimiter, valider(z.object({ telephone: z.string() })), renvoyerOtp);
 
 // POST /auth/admin-login — connexion admin par email + mot de passe
 router.post('/admin-login', valider(z.object({

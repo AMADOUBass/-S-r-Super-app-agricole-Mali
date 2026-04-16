@@ -36,6 +36,10 @@ interface SoroState {
   // Hydratation — vrai une fois que localStorage est rechargé
   _hasHydrated: boolean;
   setHasHydrated: (v: boolean) => void;
+
+  // i18n
+  locale: 'FR' | 'EN' | 'BM';
+  setLocale: (locale: 'FR' | 'EN' | 'BM') => void;
 }
 
 const useStore = create<SoroState>()(
@@ -62,6 +66,10 @@ const useStore = create<SoroState>()(
       // ── Hydratation ─────────────────────────────────────────
       _hasHydrated: false,
       setHasHydrated: (v) => set({ _hasHydrated: v }),
+
+      // ── i18n ────────────────────────────────────────────────
+      locale: 'FR',
+      setLocale: (locale) => set({ locale }),
     }),
     {
       name: 'soro-store',
@@ -69,6 +77,7 @@ const useStore = create<SoroState>()(
         token: state.token,
         utilisateur: state.utilisateur,
         regionSelectee: state.regionSelectee,
+        locale: state.locale,
       }),
       onRehydrateStorage: () => (state) => {
         state?.setHasHydrated(true);
