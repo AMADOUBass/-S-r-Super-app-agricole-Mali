@@ -11,6 +11,10 @@ interface ImageLightboxProps {
   gradient?: string;
   /** className on the trigger wrapper */
   className?: string;
+  /** Height of the trigger container (default: 260px) */
+  height?: string;
+  /** Image fit mode (default: contain) */
+  objectCover?: boolean;
   open: boolean;
   onOpen: () => void;
   onClose: () => void;
@@ -18,7 +22,7 @@ interface ImageLightboxProps {
 
 export function ImageLightbox({
   src, alt, gradient = 'from-slate-700 to-slate-900',
-  className = '', open, onOpen, onClose,
+  className = '', height = '260px', objectCover = false, open, onOpen, onClose,
 }: ImageLightboxProps) {
 
   const handleKey = useCallback((e: KeyboardEvent) => {
@@ -41,21 +45,25 @@ export function ImageLightbox({
       {/* ── Trigger ────────────────────────────────────────── */}
       <button
         onClick={onOpen}
-        className={`relative group cursor-zoom-in ${className}`}
+        className={`relative group cursor-zoom-in overflow-hidden ${className}`}
         aria-label="Agrandir la photo"
         type="button"
+        style={{ height: height !== '260px' ? height : undefined }}
       >
-        <div className={`w-full h-full bg-gradient-to-br ${gradient} flex items-center justify-center`} style={{ height: '260px' }}>
+        <div
+          className={`relative w-full bg-gradient-to-br ${gradient}`}
+          style={{ height: height === '260px' ? height : '100%' }}
+        >
           <Image
             src={src}
             alt={alt}
             fill
-            className="object-contain"
+            className={objectCover ? "object-cover" : "object-contain"}
             sizes="(max-width: 640px) 100vw, 640px"
           />
         </div>
         {/* Zoom hint */}
-        <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity">
+        <div className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center opacity-70 group-hover:opacity-100 transition-opacity z-10">
           <ZoomIn size={15} className="text-white" />
         </div>
       </button>
