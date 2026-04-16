@@ -7,6 +7,20 @@ import { Header } from '@/components/layout/Header';
 import { BottomNav } from '@/components/layout/BottomNav';
 import { CarteAnnonce } from '@/components/ui/CarteAnnonce';
 import { MapWrapper, MapMarker } from '@/components/ui/MapWrapper';
+
+const REGION_COORDS: Record<string, [number, number]> = {
+  BAMAKO:     [12.6392, -8.0029],
+  KAYES:      [14.4469, -11.4412],
+  KOULIKORO:  [12.8628, -7.5560],
+  SIKASSO:    [11.3170, -5.6664],
+  SEGOU:      [13.4317, -6.2673],
+  MOPTI:      [14.4943, -4.1977],
+  TOMBOUCTOU: [16.7735, -3.0074],
+  GAO:        [16.2666, -0.0444],
+  KIDAL:      [18.4415,  1.4078],
+  MENAKA:     [15.9157,  2.3986],
+  TAOUDENIT:  [22.6766, -3.9795],
+};
 import { useProduits } from '@/lib/queries';
 import useStore from '@/store/useStore';
 import { useTranslation } from '@/lib/i18n';
@@ -195,17 +209,16 @@ export default function PageProduits() {
             </div>
           ) : vueCarte ? (
             <div className="w-full h-[60vh] min-h-[400px] mb-8 animate-fade-in">
-              <MapWrapper 
-                markers={produits
-                  .filter((p: any) => p.latitude && p.longitude)
-                  .map((p: any) => ({
-                    id: p.id,
-                    position: [p.latitude, p.longitude],
-                    label: p.type,
-                    price: p.prixFcfa,
-                    type: p.commune
-                  }))
-                }
+              <MapWrapper
+                markers={produits.map((p: any) => ({
+                  id: p.id,
+                  position: (p.latitude && p.longitude)
+                    ? [p.latitude, p.longitude] as [number, number]
+                    : REGION_COORDS[p.region] ?? [12.6392, -8.0029],
+                  label: p.type,
+                  price: p.prixFcfa,
+                  type: p.commune,
+                }))}
               />
             </div>
           ) : produits.length > 0 ? (

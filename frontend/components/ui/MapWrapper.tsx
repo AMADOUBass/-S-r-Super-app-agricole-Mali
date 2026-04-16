@@ -40,11 +40,13 @@ function MapController({ center, markers }: { center: [number, number], markers:
   const map = useLeafletMap();
 
   useEffect(() => {
-    if (markers.length > 0) {
+    if (markers.length === 1) {
+      map.setView(markers[0].position, 10);
+    } else if (markers.length > 1) {
       // eslint-disable-next-line @typescript-eslint/no-var-requires
       const L = require('leaflet');
       const bounds = L.latLngBounds(markers.map(m => m.position));
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 10 });
     } else {
       map.setView(center, 6);
     }
