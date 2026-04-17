@@ -5,7 +5,7 @@ dotenv.config();
 
 export default defineConfig({
   datasource: {
-    url: process.env.DATABASE_URL,
+    url: process.env.DATABASE_URL ?? 'postgresql://localhost/placeholder',
     directUrl: process.env.DIRECT_URL,
   },
 });

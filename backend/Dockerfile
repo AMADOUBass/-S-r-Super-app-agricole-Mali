@@ -11,7 +11,10 @@ COPY src ./src/
 RUN npm ci
 
 RUN npx prisma generate
+
 RUN npx tsc
+
+RUN ls -la dist/ && echo "BUILD OK — dist/server.js exists"
 
 RUN npm prune --omit=dev
 
