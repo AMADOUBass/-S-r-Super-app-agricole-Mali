@@ -23,8 +23,19 @@ import { z } from "zod";
 const router = Router();
 
 const schemaCommande = z.object({
-  produitId: z.string().cuid(),
-  quantiteKg: z.number().positive(),
+  produitId: z.string().optional(),
+  quantiteKg: z.number().positive().optional(),
+  animalId: z.string().optional(),
+  materielId: z.string().optional(),
+  dateDebut: z.string().optional(),
+  dateFin: z.string().optional(),
+}).refine(data => {
+  const isProduit = !!(data.produitId && data.quantiteKg);
+  const isAnimal = !!data.animalId;
+  const isMateriel = !!(data.materielId && data.dateDebut && data.dateFin);
+  return isProduit || isAnimal || isMateriel;
+}, {
+  message: "Doit contenir soit un produit (récolte), soit un animal (bétail), soit un matériel (location avec dates)"
 });
 
 // Webhook Flutterwave — pas d'auth JWT (appel serveur→serveur)

@@ -43,10 +43,14 @@ const path_1 = __importDefault(require("path"));
 // Load environment variables from .env
 dotenv.config({ path: path_1.default.join(__dirname, '../.env') });
 // Use DIRECT_URL for seeding to bypass Accelerate proxy issues
-process.env.DATABASE_URL = process.env.DIRECT_URL;
+// Use DIRECT_URL for seeding to bypass Accelerate proxy issues
+// Use DIRECT_URL for seeding to bypass Accelerate proxy issues
 const prisma = new client_1.PrismaClient();
 async function main() {
     console.log('🌱 Starting Master Seed...');
+    if (!process.env.DIRECT_URL) {
+        console.warn('⚠️ DIRECT_URL not found, using DATABASE_URL. This may fail if it is a prisma+postgres:// URL.');
+    }
     const passwordHash = await bcryptjs_1.default.hash('password123', 10);
     // 1. Create Users
     console.log('👤 Creating Users...');
@@ -181,6 +185,47 @@ async function main() {
                 commune: 'Diboli',
             },
         ],
+    });
+    // 5. Create Price History (PrixMarche)
+    console.log('📈 Creating Price History (30 days)...');
+    const productsToSeed = [
+        client_1.TypeProduit.MIL, client_1.TypeProduit.SORGHO, client_1.TypeProduit.MAIS, client_1.TypeProduit.RIZ,
+        client_1.TypeProduit.ARACHIDE, client_1.TypeProduit.NIEBE, client_1.TypeProduit.SESAME, client_1.TypeProduit.COTON,
+        client_1.TypeProduit.MANGUE, client_1.TypeProduit.OIGNON, client_1.TypeProduit.TOMATE, client_1.TypeProduit.KARITE,
+        client_1.TypeProduit.GOMBO, client_1.TypeProduit.PATATE_DOUCE, client_1.TypeProduit.IGNAME
+    ];
+    const regionsToSeed = [
+        client_1.Region.BAMAKO, client_1.Region.SIKASSO, client_1.Region.SEGOU, client_1.Region.MOPTI,
+        client_1.Region.KAYES, client_1.Region.KOULIKORO, client_1.Region.TOMBOUCTOU, client_1.Region.GAO,
+        client_1.Region.KIDAL, client_1.Region.MENAKA, client_1.Region.TAOUDENIT
+    ];
+    const priceHistoryData = [];
+    const now = new Date();
+    for (const produit of productsToSeed) {
+        for (const region of regionsToSeed) {
+            // Base price for this product/region
+            let currentPrice = 150 + Math.random() * 300;
+            for (let i = 29; i >= 0; i--) {
+                const date = new Date(now);
+                date.setDate(date.getDate() - i);
+                date.setHours(0, 0, 0, 0);
+                // Add some random fluctuation (-5% to +5%)
+                const fluctuation = 1 + (Math.random() * 0.1 - 0.05);
+                currentPrice = Math.round(currentPrice * fluctuation);
+                priceHistoryData.push({
+                    produit,
+                    region,
+                    prixKg: currentPrice,
+                    date,
+                    source: 'Observatoire des Marchés (Sɔrô Seed)',
+                });
+            }
+        }
+    }
+    // Delete existing to avoid unique constraint conflicts on re-seed
+    await prisma.prixMarche.deleteMany({});
+    await prisma.prixMarche.createMany({
+        data: priceHistoryData,
     });
     console.log('✅ Seed Complete!');
 }

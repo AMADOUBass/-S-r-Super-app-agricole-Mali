@@ -32,6 +32,8 @@ function GraphiquePrix({ produit, region }: { produit: string; region: string })
   const hausse = dernier.prixKg >= avant.prixKg;
   const color = hausse ? '#15803d' : '#dc2626';
 
+  const slug = produit.toLowerCase().replace(/_/g, '-');
+
   return (
     <div className="px-4 pb-4">
       <div className="flex justify-between text-xs text-muted-fg mb-2">
@@ -46,12 +48,12 @@ function GraphiquePrix({ produit, region }: { produit: string; region: string })
       </div>
       <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-14 rounded-lg overflow-hidden">
         <defs>
-          <linearGradient id={`grad-${produit}`} x1="0" y1="0" x2="0" y2="1">
+          <linearGradient id={`grad-${slug}`} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity="0.18"/>
             <stop offset="100%" stopColor={color} stopOpacity="0"/>
           </linearGradient>
         </defs>
-        <polygon points={`0,${H} ${points} ${W},${H}`} fill={`url(#grad-${produit})`} />
+        <polygon points={`0,${H} ${points} ${W},${H}`} fill={`url(#grad-${slug})`} />
         <polyline
           points={points}
           fill="none"
@@ -83,7 +85,8 @@ const REGIONS = ['BAMAKO', 'SIKASSO', 'SEGOU', 'MOPTI', 'KAYES', 'KOULIKORO', 'T
 const EMOJI: Record<string, string> = {
   MIL: '🌾', SORGHO: '🌾', MAIS: '🌽', RIZ: '🍚', ARACHIDE: '🥜',
   NIEBE: '🫘', MANGUE: '🥭', OIGNON: '🧅', TOMATE: '🍅',
-  KARITE: '🌿', SESAME: '✨', COTON: '☁️',
+  KARITE: '🌿', SESAME: '✨', COTON: '☁️', GOMBO: '🥒', 
+  PATATE_DOUCE: '🍠', IGNAME: '🥔',
 };
 
 const EMOJI_BG: Record<string, string> = {
@@ -91,6 +94,7 @@ const EMOJI_BG: Record<string, string> = {
   RIZ: 'bg-slate-50', ARACHIDE: 'bg-amber-50', NIEBE: 'bg-orange-50',
   MANGUE: 'bg-yellow-50', OIGNON: 'bg-purple-50', TOMATE: 'bg-red-50',
   KARITE: 'bg-primary-50', SESAME: 'bg-amber-50', COTON: 'bg-sky-50',
+  GOMBO: 'bg-emerald-50', PATATE_DOUCE: 'bg-orange-50', IGNAME: 'bg-stone-50',
 };
 
 export default function PageMarche() {

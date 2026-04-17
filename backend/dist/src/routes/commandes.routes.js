@@ -14,8 +14,19 @@ const validate_middleware_1 = require("../middleware/validate.middleware");
 const zod_1 = require("zod");
 const router = (0, express_1.Router)();
 const schemaCommande = zod_1.z.object({
-    produitId: zod_1.z.string().cuid(),
-    quantiteKg: zod_1.z.number().positive(),
+    produitId: zod_1.z.string().optional(),
+    quantiteKg: zod_1.z.number().positive().optional(),
+    animalId: zod_1.z.string().optional(),
+    materielId: zod_1.z.string().optional(),
+    dateDebut: zod_1.z.string().optional(),
+    dateFin: zod_1.z.string().optional(),
+}).refine(data => {
+    const isProduit = !!(data.produitId && data.quantiteKg);
+    const isAnimal = !!data.animalId;
+    const isMateriel = !!(data.materielId && data.dateDebut && data.dateFin);
+    return isProduit || isAnimal || isMateriel;
+}, {
+    message: "Doit contenir soit un produit (récolte), soit un animal (bétail), soit un matériel (location avec dates)"
 });
 // Webhook Flutterwave — pas d'auth JWT (appel serveur→serveur)
 // Doit être AVANT /:id pour éviter le conflit de route

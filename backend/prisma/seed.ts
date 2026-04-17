@@ -7,11 +7,15 @@ import path from 'path';
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 // Use DIRECT_URL for seeding to bypass Accelerate proxy issues
-process.env.DATABASE_URL = process.env.DIRECT_URL;
+// Use DIRECT_URL for seeding to bypass Accelerate proxy issues
+// Use DIRECT_URL for seeding to bypass Accelerate proxy issues
 const prisma = new PrismaClient();
 
 async function main() {
   console.log('🌱 Starting Master Seed...');
+  if (!process.env.DIRECT_URL) {
+    console.warn('⚠️ DIRECT_URL not found, using DATABASE_URL. This may fail if it is a prisma+postgres:// URL.');
+  }
 
   const passwordHash = await bcrypt.hash('password123', 10);
 
@@ -152,6 +156,54 @@ async function main() {
         commune: 'Diboli',
       },
     ],
+  });
+
+  // 5. Create Price History (PrixMarche)
+  console.log('📈 Creating Price History (30 days)...');
+  const productsToSeed = [
+    TypeProduit.MIL, TypeProduit.SORGHO, TypeProduit.MAIS, TypeProduit.RIZ, 
+    TypeProduit.ARACHIDE, TypeProduit.NIEBE, TypeProduit.SESAME, TypeProduit.COTON, 
+    TypeProduit.MANGUE, TypeProduit.OIGNON, TypeProduit.TOMATE, TypeProduit.KARITE,
+    TypeProduit.GOMBO, TypeProduit.PATATE_DOUCE, TypeProduit.IGNAME
+  ];
+  const regionsToSeed = [
+    Region.BAMAKO, Region.SIKASSO, Region.SEGOU, Region.MOPTI, 
+    Region.KAYES, Region.KOULIKORO, Region.TOMBOUCTOU, Region.GAO, 
+    Region.KIDAL, Region.MENAKA, Region.TAOUDENIT
+  ];
+  
+  const priceHistoryData = [];
+  const now = new Date();
+
+  for (const produit of productsToSeed) {
+    for (const region of regionsToSeed) {
+      // Base price for this product/region
+      let currentPrice = 150 + Math.random() * 300;
+      
+      for (let i = 29; i >= 0; i--) {
+        const date = new Date(now);
+        date.setDate(date.getDate() - i);
+        date.setHours(0, 0, 0, 0);
+
+        // Add some random fluctuation (-5% to +5%)
+        const fluctuation = 1 + (Math.random() * 0.1 - 0.05);
+        currentPrice = Math.round(currentPrice * fluctuation);
+
+        priceHistoryData.push({
+          produit,
+          region,
+          prixKg: currentPrice,
+          date,
+          source: 'Observatoire des Marchés (Sɔrô Seed)',
+        });
+      }
+    }
+  }
+
+  // Delete existing to avoid unique constraint conflicts on re-seed
+  await prisma.prixMarche.deleteMany({});
+  await prisma.prixMarche.createMany({
+    data: priceHistoryData,
   });
 
   console.log('✅ Seed Complete!');

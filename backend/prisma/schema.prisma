@@ -1,6 +1,3 @@
-// Schéma Prisma pour Sɔrɔ — super-app agricole Mali
-// Base de données : PostgreSQL hébergée sur Supabase
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -9,40 +6,264 @@ datasource db {
   provider = "postgresql"
 }
 
-// ─────────────────────────────────────────────────────────────
-// UTILISATEUR
-// ─────────────────────────────────────────────────────────────
 model Utilisateur {
-  id          String   @id @default(cuid())
-  telephone   String?  @unique                   // +22360000000
-  email       String?  @unique
-  passwordHash String?
-  nom         String
-  role        Role     @default(AGRICULTEUR)
-  commune     String
-  region      Region
-  orangeMoney String?                            // numéro Orange Money si différent
-  photoUrl    String?
-  actif       Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  produits    Produit[]    @relation("AgriculteurProduits")
-  achats      Commande[]   @relation("AcheteurCommandes")
-  ventes      Commande[]   @relation("VendeurCommandes")
-  materiels   Materiel[]
-  locations   Location[]
-  animaux     Animal[]
-  portefeuille Portefeuille?
-  retraits    Retrait[]
-  conversationsEntamees Conversation[] @relation("AcheteurConversations")
-  conversationsRecues   Conversation[] @relation("VendeurConversations")
-  messagesEnvoyes       Message[]      @relation("ExpediteurMessages")
+  id                    String         @id @default(cuid())
+  telephone             String?        @unique
+  nom                   String
+  role                  Role           @default(AGRICULTEUR)
+  commune               String
+  region                Region
+  orangeMoney           String?
+  photoUrl              String?
+  actif                 Boolean        @default(true)
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  email                 String?        @unique
+  passwordHash          String?
+  animaux               Animal[]
   avisDonnes            Avis[]         @relation("AuteurAvis")
   avisRecus             Avis[]         @relation("DestinataireAvis")
+  achats                Commande[]     @relation("AcheteurCommandes")
+  ventes                Commande[]     @relation("VendeurCommandes")
+  conversationsEntamees Conversation[] @relation("AcheteurConversations")
+  conversationsRecues   Conversation[] @relation("VendeurConversations")
+  locations             Location[]
+  materiels             Materiel[]
+  messagesEnvoyes       Message[]      @relation("ExpediteurMessages")
+  portefeuille          Portefeuille?
+  produits              Produit[]      @relation("AgriculteurProduits")
+  retraits              Retrait[]
 
   @@map("utilisateurs")
+}
+
+model Produit {
+  id            String         @id @default(cuid())
+  type          TypeProduit
+  quantiteKg    Float
+  prixFcfa      Int
+  description   String?
+  photoUrl      String?
+  disponible    Boolean        @default(true)
+  commune       String
+  region        Region
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  agriculteurId String
+  latitude      Float?
+  longitude     Float?
+  commandes     Commande[]
+  conversations Conversation[]
+  agriculteur   Utilisateur    @relation("AgriculteurProduits", fields: [agriculteurId], references: [id])
+
+  @@index([region, disponible])
+  @@index([type])
+  @@map("produits")
+}
+
+model Commande {
+  id             String         @id @default(cuid())
+  quantiteKg     Float
+  montantFcfa    Int
+  commission     Int
+  statut         StatutCommande @default(EN_ATTENTE)
+  paiementRef    String?
+  paiementStatut String?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  produitId      String
+  acheteurId     String
+  vendeurId      String
+  avis           Avis?
+  acheteur       Utilisateur    @relation("AcheteurCommandes", fields: [acheteurId], references: [id])
+  produit        Produit        @relation(fields: [produitId], references: [id])
+  vendeur        Utilisateur    @relation("VendeurCommandes", fields: [vendeurId], references: [id])
+
+  @@map("commandes")
+}
+
+model Materiel {
+  id             String         @id @default(cuid())
+  type           TypeMateriel
+  description    String?
+  prixJour       Int
+  caution        Int
+  photoUrl       String?
+  disponible     Boolean        @default(true)
+  commune        String
+  region         Region
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  proprietaireId String
+  latitude       Float?
+  longitude      Float?
+  conversations  Conversation[]
+  locations      Location[]
+  proprietaire   Utilisateur    @relation(fields: [proprietaireId], references: [id])
+
+  @@index([region, disponible])
+  @@index([type])
+  @@map("materiels")
+}
+
+model Location {
+  id            String         @id @default(cuid())
+  dateDebut     DateTime
+  dateFin       DateTime
+  montantFcfa   Int
+  commission    Int
+  caution       Int
+  statut        StatutLocation @default(EN_ATTENTE)
+  paiementRef   String?
+  contratPdfUrl String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  materielId    String
+  locataireId   String
+  avis          Avis?
+  locataire     Utilisateur    @relation(fields: [locataireId], references: [id])
+  materiel      Materiel       @relation(fields: [materielId], references: [id])
+
+  @@map("locations")
+}
+
+model Animal {
+  id            String         @id @default(cuid())
+  type          TypeAnimal
+  race          String?
+  age           Int?
+  poidsKg       Float?
+  prixFcfa      Int
+  description   String?
+  photoUrl      String?
+  vendu         Boolean        @default(false)
+  commune       String
+  region        Region
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  vendeurId     String
+  latitude      Float?
+  longitude     Float?
+  vendeur       Utilisateur    @relation(fields: [vendeurId], references: [id])
+  conversations Conversation[]
+
+  @@index([region, vendu])
+  @@index([type])
+  @@map("animaux")
+}
+
+model PrixMarche {
+  id      String      @id @default(cuid())
+  produit TypeProduit
+  region  Region
+  prixKg  Int
+  source  String?
+  date    DateTime    @default(now())
+
+  @@unique([produit, region, date])
+  @@map("prix_marche")
+}
+
+model Otp {
+  id        String   @id @default(cuid())
+  telephone String
+  code      String
+  expiresAt DateTime
+  utilise   Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@map("otps")
+}
+
+model Portefeuille {
+  id            String                    @id @default(cuid())
+  solde         Int                       @default(0)
+  createdAt     DateTime                  @default(now())
+  updatedAt     DateTime                  @updatedAt
+  utilisateurId String                    @unique
+  utilisateur   Utilisateur               @relation(fields: [utilisateurId], references: [id])
+  transactions  TransactionPortefeuille[]
+
+  @@map("portefeuilles")
+}
+
+model TransactionPortefeuille {
+  id             String          @id @default(cuid())
+  montant        Int
+  type           TypeTransaction
+  referenceId    String?
+  createdAt      DateTime        @default(now())
+  portefeuilleId String
+  portefeuille   Portefeuille    @relation(fields: [portefeuilleId], references: [id])
+
+  @@map("transactions_portefeuille")
+}
+
+model Retrait {
+  id            String        @id @default(cuid())
+  montant       Int
+  numeroPhone   String
+  statut        StatutRetrait @default(EN_ATTENTE)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  utilisateurId String
+  utilisateur   Utilisateur   @relation(fields: [utilisateurId], references: [id])
+
+  @@map("retraits")
+}
+
+model Conversation {
+  id         String      @id @default(cuid())
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  acheteurId String
+  vendeurId  String
+  produitId  String?
+  animalId   String?
+  materielId String?
+  acheteur   Utilisateur @relation("AcheteurConversations", fields: [acheteurId], references: [id])
+  animal     Animal?     @relation(fields: [animalId], references: [id])
+  materiel   Materiel?   @relation(fields: [materielId], references: [id])
+  produit    Produit?    @relation(fields: [produitId], references: [id])
+  vendeur    Utilisateur @relation("VendeurConversations", fields: [vendeurId], references: [id])
+  messages   Message[]
+
+  @@unique([acheteurId, vendeurId, produitId])
+  @@unique([acheteurId, vendeurId, animalId])
+  @@unique([acheteurId, vendeurId, materielId])
+  @@map("conversations")
+}
+
+model Message {
+  id             String       @id @default(cuid())
+  conversationId String
+  expediteurId   String
+  type           TypeMessage  @default(TEXTE)
+  contenu        String?
+  audioUrl       String?
+  lu             Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  expediteur     Utilisateur  @relation("ExpediteurMessages", fields: [expediteurId], references: [id])
+
+  @@map("messages")
+}
+
+model Avis {
+  id             String      @id @default(cuid())
+  note           Int
+  commentaire    String?
+  createdAt      DateTime    @default(now())
+  auteurId       String
+  destinataireId String
+  commandeId     String?     @unique
+  locationId     String?     @unique
+  auteur         Utilisateur @relation("AuteurAvis", fields: [auteurId], references: [id])
+  commande       Commande?   @relation(fields: [commandeId], references: [id])
+  destinataire   Utilisateur @relation("DestinataireAvis", fields: [destinataireId], references: [id])
+  location       Location?   @relation(fields: [locationId], references: [id])
+
+  @@map("avis")
 }
 
 enum Role {
@@ -66,35 +287,6 @@ enum Region {
   TAOUDENIT
 }
 
-// ─────────────────────────────────────────────────────────────
-// PRODUIT (récoltes agricoles)
-// ─────────────────────────────────────────────────────────────
-model Produit {
-  id          String      @id @default(cuid())
-  type        TypeProduit
-  quantiteKg  Float                              // quantité disponible en kg
-  prixFcfa    Int                                // prix par kg en FCFA
-  description String?
-  photoUrl    String?
-  disponible  Boolean     @default(true)
-  commune     String
-  region      Region
-  latitude    Float?
-  longitude   Float?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  // Relations
-  agriculteurId String
-  agriculteur   Utilisateur @relation("AgriculteurProduits", fields: [agriculteurId], references: [id])
-  commandes     Commande[]
-  conversations Conversation[]
-
-  @@index([region, disponible])
-  @@index([type])
-  @@map("produits")
-}
-
 enum TypeProduit {
   MIL
   SORGHO
@@ -113,32 +305,6 @@ enum TypeProduit {
   IGNAME
 }
 
-// ─────────────────────────────────────────────────────────────
-// COMMANDE
-// ─────────────────────────────────────────────────────────────
-model Commande {
-  id           String        @id @default(cuid())
-  quantiteKg   Float
-  montantFcfa  Int                               // montant total
-  commission   Int                               // 3% du montant (payé par l'acheteur)
-  statut       StatutCommande @default(EN_ATTENTE)
-  paiementRef  String?                           // charge ID Flutterwave (chg_xxx)
-  paiementStatut String?                         // statut retour webhook Flutterwave
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  // Relations
-  produitId    String
-  produit      Produit      @relation(fields: [produitId], references: [id])
-  acheteurId   String
-  acheteur     Utilisateur  @relation("AcheteurCommandes", fields: [acheteurId], references: [id])
-  vendeurId    String
-  vendeur      Utilisateur  @relation("VendeurCommandes", fields: [vendeurId], references: [id])
-  avis         Avis?
-
-  @@map("commandes")
-}
-
 enum StatutCommande {
   EN_ATTENTE
   PAIEMENT_INITIE
@@ -146,35 +312,6 @@ enum StatutCommande {
   EN_COURS
   LIVRE
   ANNULE
-}
-
-// ─────────────────────────────────────────────────────────────
-// MATÉRIEL (location)
-// ─────────────────────────────────────────────────────────────
-model Materiel {
-  id          String        @id @default(cuid())
-  type        TypeMateriel
-  description String?
-  prixJour    Int                                // prix par jour en FCFA
-  caution     Int                                // caution bloquée en escrow
-  photoUrl    String?
-  disponible  Boolean       @default(true)
-  commune     String
-  region      Region
-  latitude    Float?
-  longitude   Float?
-  createdAt   DateTime      @default(now())
-  updatedAt   DateTime      @updatedAt
-
-  // Relations
-  proprietaireId String
-  proprietaire   Utilisateur @relation(fields: [proprietaireId], references: [id])
-  locations      Location[]
-  conversations  Conversation[]
-
-  @@index([region, disponible])
-  @@index([type])
-  @@map("materiels")
 }
 
 enum TypeMateriel {
@@ -189,68 +326,12 @@ enum TypeMateriel {
   MOISSONNEUSE
 }
 
-// ─────────────────────────────────────────────────────────────
-// LOCATION
-// ─────────────────────────────────────────────────────────────
-model Location {
-  id           String        @id @default(cuid())
-  dateDebut    DateTime
-  dateFin      DateTime
-  montantFcfa  Int
-  commission   Int                               // 5% du montant
-  caution      Int
-  statut       StatutLocation @default(EN_ATTENTE)
-  paiementRef  String?
-  contratPdfUrl String?                          // URL du contrat PDF généré
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-
-  // Relations
-  materielId   String
-  materiel     Materiel     @relation(fields: [materielId], references: [id])
-  locataireId  String
-  locataire    Utilisateur  @relation(fields: [locataireId], references: [id])
-  avis         Avis?
-
-  @@map("locations")
-}
-
 enum StatutLocation {
   EN_ATTENTE
   CAUTION_BLOQUEE
   EN_COURS
   TERMINE
   ANNULE
-}
-
-// ─────────────────────────────────────────────────────────────
-// ANIMAL (élevage)
-// ─────────────────────────────────────────────────────────────
-model Animal {
-  id          String      @id @default(cuid())
-  type        TypeAnimal
-  race        String?
-  age         Int?                               // en mois
-  poidsKg     Float?
-  prixFcfa    Int
-  description String?
-  photoUrl    String?
-  vendu       Boolean     @default(false)
-  commune     String
-  region      Region
-  latitude    Float?
-  longitude   Float?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-
-  // Relations
-  vendeurId   String
-  vendeur     Utilisateur @relation(fields: [vendeurId], references: [id])
-  conversations Conversation[]
-
-  @@index([region, vendu])
-  @@index([type])
-  @@map("animaux")
 }
 
 enum TypeAnimal {
@@ -264,87 +345,10 @@ enum TypeAnimal {
   CHAMEAU
 }
 
-// ─────────────────────────────────────────────────────────────
-// PRIX MARCHÉ (mis à jour chaque jour par cron job)
-// ─────────────────────────────────────────────────────────────
-model PrixMarche {
-  id       String      @id @default(cuid())
-  produit  TypeProduit
-  region   Region
-  prixKg   Int                                   // prix en FCFA par kg
-  source   String?                               // source de la donnée
-  date     DateTime    @default(now())
-
-  @@unique([produit, region, date])
-  @@map("prix_marche")
-}
-
-// ─────────────────────────────────────────────────────────────
-// OTP (vérification numéro de téléphone)
-// ─────────────────────────────────────────────────────────────
-model Otp {
-  id        String   @id @default(cuid())
-  telephone String
-  code      String
-  expiresAt DateTime
-  utilise   Boolean  @default(false)
-  createdAt DateTime @default(now())
-
-  @@map("otps")
-}
-// ─────────────────────────────────────────────────────────────
-// PORTEFEUILLE (Solde interne)
-// ─────────────────────────────────────────────────────────────
-model Portefeuille {
-  id             String    @id @default(cuid())
-  solde          Int       @default(0)           // Solde en FCFA
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
-
-  // Relations
-  utilisateurId  String    @unique
-  utilisateur    Utilisateur @relation(fields: [utilisateurId], references: [id])
-  transactions   TransactionPortefeuille[]
-
-  @@map("portefeuilles")
-}
-
-model TransactionPortefeuille {
-  id             String          @id @default(cuid())
-  montant        Int                               // Positif pour crédit, négatif pour débit
-  type           TypeTransaction
-  referenceId    String?                           // ID Commande ou Retrait
-  createdAt      DateTime        @default(now())
-
-  // Relations
-  portefeuilleId String
-  portefeuille   Portefeuille    @relation(fields: [portefeuilleId], references: [id])
-
-  @@map("transactions_portefeuille")
-}
-
 enum TypeTransaction {
   VENTE
   LOCATION
   RETRAIT
-}
-
-// ─────────────────────────────────────────────────────────────
-// RETRAIT (Demande de virement Orange Money)
-// ─────────────────────────────────────────────────────────────
-model Retrait {
-  id             String        @id @default(cuid())
-  montant        Int
-  numeroPhone    String                            // Numéro de réception Orange Money/Wave
-  statut         StatutRetrait @default(EN_ATTENTE)
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
-
-  // Relations
-  utilisateurId  String
-  utilisateur    Utilisateur   @relation(fields: [utilisateurId], references: [id])
-
-  @@map("retraits")
 }
 
 enum StatutRetrait {
@@ -353,78 +357,7 @@ enum StatutRetrait {
   REJETE
 }
 
-// ─────────────────────────────────────────────────────────────
-// MESSAGERIE P2P
-// ─────────────────────────────────────────────────────────────
-model Conversation {
-  id          String   @id @default(cuid())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Participants
-  acheteurId  String
-  acheteur    Utilisateur @relation("AcheteurConversations", fields: [acheteurId], references: [id])
-  vendeurId   String
-  vendeur     Utilisateur @relation("VendeurConversations", fields: [vendeurId], references: [id])
-
-  // Context (Lien vers l'annonce)
-  produitId   String?
-  produit     Produit?    @relation(fields: [produitId], references: [id])
-  animalId    String?
-  animal      Animal?     @relation(fields: [animalId], references: [id])
-  materielId  String?
-  materiel    Materiel?   @relation(fields: [materielId], references: [id])
-
-  messages    Message[]
-
-  @@unique([acheteurId, vendeurId, produitId])
-  @@unique([acheteurId, vendeurId, animalId])
-  @@unique([acheteurId, vendeurId, materielId])
-  @@map("conversations")
-}
-
 enum TypeMessage {
   TEXTE
   VOCAL
-}
-
-model Message {
-  id             String   @id @default(cuid())
-  conversationId String
-  conversation   Conversation @relation(fields: [conversationId], references: [id])
-  expediteurId   String
-  expediteur     Utilisateur  @relation("ExpediteurMessages", fields: [expediteurId], references: [id])
-  type           TypeMessage @default(TEXTE)
-  contenu        String?
-  audioUrl       String?
-  lu             Boolean  @default(false)
-  createdAt      DateTime @default(now())
-
-  @@map("messages")
-}
-
-// ─────────────────────────────────────────────────────────────
-// AVIS & NOTATIONS
-// ─────────────────────────────────────────────────────────────
-model Avis {
-  id             String      @id @default(cuid())
-  note           Int                               // Note de 1 à 5
-  commentaire    String?
-  createdAt      DateTime    @default(now())
-
-  // Celui qui laisse l'avis
-  auteurId       String
-  auteur         Utilisateur @relation("AuteurAvis", fields: [auteurId], references: [id])
-
-  // Celui qui est noté (Généralement le vendeur/propriétaire)
-  destinataireId String
-  destinataire   Utilisateur @relation("DestinataireAvis", fields: [destinataireId], references: [id])
-
-  // Context facultatif (achat ou location spécifique)
-  commandeId     String?     @unique
-  commande       Commande?   @relation(fields: [commandeId], references: [id])
-  locationId     String?     @unique
-  location       Location?   @relation(fields: [locationId], references: [id])
-
-  @@map("avis")
 }
