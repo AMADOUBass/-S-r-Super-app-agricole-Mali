@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { api } from '@/lib/api';
@@ -67,7 +67,7 @@ const REGIONS = [
   'SEGOU', 'MOPTI', 'TOMBOUCTOU', 'GAO', 'KIDAL', 'MENAKA', 'TAOUDENIT',
 ];
 
-export default function PageVendre() {
+function VendreContent() {
   const { t } = useTranslation();
   const router = useRouter();
   const utilisateur = useStore(s => s.utilisateur);
@@ -519,5 +519,17 @@ export default function PageVendre() {
         </form>
       </main>
     </div>
+  );
+}
+
+export default function PageVendre() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-surface-2 flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary-600" size={40} />
+      </div>
+    }>
+      <VendreContent />
+    </Suspense>
   );
 }
