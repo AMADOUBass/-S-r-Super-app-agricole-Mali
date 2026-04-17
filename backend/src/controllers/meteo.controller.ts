@@ -13,8 +13,12 @@ export const getMeteo = async (req: Request, res: Response): Promise<void> => {
     const meteo = await getMeteoParCommune(commune);
 
     res.json({ success: true, data: meteo });
-  } catch (err) {
-    console.error('[meteo]', err);
-    res.status(500).json({ success: false, error: 'Impossible de récupérer la météo' });
+  } catch (err: any) {
+    console.error(`[meteo] Erreur lors de la récupération pour ${req.params.commune}:`, err.message);
+    res.status(500).json({ 
+      success: false, 
+      error: 'Impossible de récupérer la météo',
+      details: process.env.NODE_ENV === 'development' ? err.message : undefined
+    });
   }
 };

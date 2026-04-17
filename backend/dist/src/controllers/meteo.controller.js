@@ -14,8 +14,12 @@ const getMeteo = async (req, res) => {
         res.json({ success: true, data: meteo });
     }
     catch (err) {
-        console.error('[meteo]', err);
-        res.status(500).json({ success: false, error: 'Impossible de récupérer la météo' });
+        console.error(`[meteo] Erreur lors de la récupération pour ${req.params.commune}:`, err.message);
+        res.status(500).json({
+            success: false,
+            error: 'Impossible de récupérer la météo',
+            details: process.env.NODE_ENV === 'development' ? err.message : undefined
+        });
     }
 };
 exports.getMeteo = getMeteo;

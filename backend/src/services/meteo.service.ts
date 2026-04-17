@@ -50,31 +50,42 @@ export const getMeteoParCommune = async (commune: string): Promise<MeteoResponse
   const cleRecherche = commune.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
   const coords = COORDONNEES_MALI[cleRecherche] || COORDONNEES_MALI['bamako'];
 
-  const response = await axios.get(`${BASE_URL}/forecast`, {
-    params: {
+  try {
+    const response = await axios.get(`${BASE_URL}/forecast`, {
+      params: {
+        latitude: coords.lat,
+        longitude: coords.lon,
+        daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode',
+        timezone: 'Africa/Bamako',
+        forecast_days: 7,
+      },
+      headers: {
+        'User-Agent': 'SoroMali/1.0 (https://s-r-super-app-agricole-mali.vercel.app; support@soromali.ml)',
+        'Accept': 'application/json',
+      },
+      timeout: 8000, // 8 secondes de timeout max
+    });
+
+    const { daily } = response.data;
+
+    const previsions = daily.time.map((date: string, i: number) => ({
+      date,
+      tempMax: Math.round(daily.temperature_2m_max[i]),
+      tempMin: Math.round(daily.temperature_2m_min[i]),
+      precipitation: daily.precipitation_sum[i] || 0,
+      vent: Math.round(daily.windspeed_10m_max[i]),
+      description: getDescriptionMeteo(daily.weathercode[i]),
+    }));
+
+    return {
+      commune,
       latitude: coords.lat,
       longitude: coords.lon,
-      daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,windspeed_10m_max,weathercode',
-      timezone: 'Africa/Bamako',
-      forecast_days: 7,
-    },
-  });
-
-  const { daily } = response.data;
-
-  const previsions = daily.time.map((date: string, i: number) => ({
-    date,
-    tempMax: Math.round(daily.temperature_2m_max[i]),
-    tempMin: Math.round(daily.temperature_2m_min[i]),
-    precipitation: daily.precipitation_sum[i] || 0,
-    vent: Math.round(daily.windspeed_10m_max[i]),
-    description: getDescriptionMeteo(daily.weathercode[i]),
-  }));
-
-  return {
-    commune,
-    latitude: coords.lat,
-    longitude: coords.lon,
-    previsions,
-  };
+      previsions,
+    };
+  } catch (err: any) {
+    const message = err.response?.data?.reason || err.message;
+    console.error(`[meteo.service] Erreur Open-Meteo (${commune}):`, message);
+    throw new Error(`Erreur API Météo: ${message}`);
+  }
 };
