@@ -128,5 +128,33 @@
     "quick_actions": "Actions rapides",
     "inventory": "Inventaire",
     "market_prices": "Prix du jour"
+  },
+  "publish": {
+    "title": "Publier sur Sɔrô",
+    "select_mode": "Que souhaitez-vous faire ?",
+    "mode_harvest": "Vendre une récolte",
+    "mode_livestock": "Vendre du bétail",
+    "mode_equipment": "Louer du matériel",
+    "step_1": "1. Détails du produit",
+    "step_2": "2. Origine",
+    "step_3": "3. Prix et Quantité",
+    "step_4": "4. Photo et Infos",
+    "select_product": "Sélectionnez votre produit",
+    "select_animal": "Quel animal vendez-vous ?",
+    "select_equipment": "Quel matériel proposez-vous ?",
+    "price_kg": "Prix / kg",
+    "price_head": "Prix / tête",
+    "price_day": "Prix / jour",
+    "caution": "Caution (FCFA)",
+    "quantity_kg": "Quantité (kg)",
+    "quantity_heads": "Nombre de têtes",
+    "age": "Âge (mois)",
+    "weight": "Poids estimé (kg)",
+    "race": "Race (ex: Zébu, Bali-bali)",
+    "placeholder_desc": "Ajoutez des précisions (qualité, état, disponibilité...)",
+    "gps_ok": "Position GPS OK",
+    "gps_add": "Ajouter ma position GPS",
+    "submit": "Publier maintenant",
+    "success": "Annonce publiée avec succès !"
   }
 }

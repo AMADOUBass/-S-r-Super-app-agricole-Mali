@@ -127,6 +127,34 @@
     "view_all": "View all",
     "quick_actions": "Quick actions",
     "inventory": "Inventory",
-    "market_prices": "Market prices"
+    "market_prices": "Daily Prices"
+  },
+  "publish": {
+    "title": "Publish on Sɔrô",
+    "select_mode": "What would you like to do?",
+    "mode_harvest": "Sell a harvest",
+    "mode_livestock": "Sell livestock",
+    "mode_equipment": "Rent equipment",
+    "step_1": "1. Product details",
+    "step_2": "2. Origin",
+    "step_3": "3. Price and Quantity",
+    "step_4": "4. Photo and Info",
+    "select_product": "Select your product",
+    "select_animal": "Which animal are you selling?",
+    "select_equipment": "Which equipment are you offering?",
+    "price_kg": "Price / kg",
+    "price_head": "Price / head",
+    "price_day": "Price / day",
+    "caution": "Security Deposit (FCFA)",
+    "quantity_kg": "Quantity (kg)",
+    "quantity_heads": "Number of heads",
+    "age": "Age (months)",
+    "weight": "Estimated weight (kg)",
+    "race": "Breed (e.g. Zebu, Bali-bali)",
+    "placeholder_desc": "Add details (quality, condition, availability...)",
+    "gps_ok": "GPS Position OK",
+    "gps_add": "Add my GPS position",
+    "submit": "Publish now",
+    "success": "Listing published successfully!"
   }
 }

@@ -86,7 +86,7 @@ export default function PageElevage() {
                   <p className="text-white/65 text-xs md:text-sm mt-0.5">{t('explore.title_elevage')}</p>
                 </div>
                 {estAgriculteur && (
-                  <Link href="/elevage/publier"
+                  <Link href="/vendre?mode=LIVESTOCK"
                     className="flex-shrink-0 inline-flex items-center gap-1.5 bg-white text-rose-800 font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Publier

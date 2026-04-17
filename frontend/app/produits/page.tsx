@@ -108,7 +108,7 @@ export default function PageProduits() {
                   <p className="text-white/65 text-xs md:text-sm mt-0.5">{t('home.buy_products')}</p>
                 </div>
                 {estAgriculteur && (
-                  <Link href="/vendre"
+                  <Link href="/vendre?mode=HARVEST"
                     className="flex-shrink-0 inline-flex items-center gap-1.5 bg-white text-primary-800 font-bold px-4 py-2.5 rounded-xl text-sm shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition-all duration-200">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                     Publier

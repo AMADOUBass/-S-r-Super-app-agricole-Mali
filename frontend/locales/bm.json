@@ -126,7 +126,35 @@
     "recent_messages": "Kuma kura",
     "view_all": "Bɛɛ lajɛ",
     "quick_actions": "Baara teliw",
-    "inventory": "Nafolo",
-    "market_prices": "Songo kura"
+    "inventory": "Fɛn bɛɛ",
+    "market_prices": "Don o don sɔngɔ"
+  },
+  "publish": {
+    "title": "Sɔrô kan fɛn lase",
+    "select_mode": "I b'a fɛ ka mun kɛ?",
+    "mode_harvest": "Récolte feere",
+    "mode_livestock": "Bagaraw feere",
+    "mode_equipment": "Minɛnw louwer",
+    "step_1": "1. Fɛn tilayali",
+    "step_2": "2. Jamana",
+    "step_3": "3. Sɔngɔ ni hakɛ",
+    "step_4": "4. Ja ni kunnafoni",
+    "select_product": "I ka fɛn sugandi",
+    "select_animal": "Bagara juman b'i fɛ ka feere?",
+    "select_equipment": "Minɛn juman b'i fɛ ka louwer?",
+    "price_kg": "Sɔngɔ / kg",
+    "price_head": "Sɔngɔ / tulu",
+    "price_day": "Sɔngɔ / don",
+    "caution": "Caution (FCFA)",
+    "quantity_kg": "Hakɛ (kg)",
+    "quantity_heads": "Bagara hakɛ",
+    "age": "Si (kalo)",
+    "weight": "Girinya (kg)",
+    "race": "Si (e.g. Zébu, Bali-bali)",
+    "placeholder_desc": "Kunnafoni wɛrɛw a kan (ɲuman, kɛcogo...)",
+    "gps_ok": "GPS bɛ kɛnɛ kan",
+    "gps_add": "N ka GPS yɔrɔ fara a kan",
+    "submit": "A lase sisan",
+    "success": "A lasela a ɲumanya la!"
   }
 }
