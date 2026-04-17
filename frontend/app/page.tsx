@@ -15,7 +15,7 @@ import vehiculeImg from '@/public/images/vehicule.png';
 import salleImg from '@/public/images/salle-reunion.png';
 import reunionImg from '@/public/images/reunion.png';
 import produitImg from '@/public/images/produit.png';
-import tracteurModuleImg from '@/public/images/tracteur.png';
+import tracteurModuleImg from '@/public/images/tracteur_v2.png';
 import betailModuleImg from '@/public/images/betail.png';
 import reunionVillageImg from '@/public/images/reunion-village.png';
 

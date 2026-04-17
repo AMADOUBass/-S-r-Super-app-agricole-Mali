@@ -22,13 +22,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!produit) {
     return {
-      title: 'Annonce introuvable — Sɔrɔ',
+      title: 'Annonce introuvable | Sɔrô',
     };
   }
 
   const typeLabel = produit.type.charAt(0) + produit.type.slice(1).toLowerCase();
-  const title = `Acheter ${produit.quantiteKg}kg de ${typeLabel} à ${produit.commune} — Sɔrɔ`;
-  const description = `Prix : ${produit.prixFcfa.toLocaleString('fr')} FCFA/kg. Connectez-vous avec ${produit.agriculteur.nom} à ${produit.commune} (${produit.region}) sur Sɔrɔ, votre marché agricole au Mali.`;
+  const title = `${typeLabel} à vendre - ${produit.commune} | Sɔrô`;
+  const description = `${produit.quantiteKg}kg de ${typeLabel} à ${produit.prixFcfa.toLocaleString('fr')} FCFA/kg. Disponible à ${produit.commune} (${produit.region}) sur Sɔrô.`;
 
   return {
     title,
@@ -36,16 +36,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      type: 'website',
+      type: 'article',
       url: `https://soro.vercel.app/produits/${produit.id}`,
       images: [
         {
           url: produit.photoUrl || 'https://soro.vercel.app/images/logo-soro.png',
-          width: 800,
-          height: 600,
-          alt: typeLabel,
+          width: 1200,
+          height: 630,
+          alt: `${typeLabel} à vendre`,
         },
       ],
+      siteName: 'Sɔrô',
     },
     twitter: {
       card: 'summary_large_image',
@@ -55,6 +56,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
   };
 }
+
 
 export default async function Page({ params }: Props) {
   const produit = await getProduit(params.id);

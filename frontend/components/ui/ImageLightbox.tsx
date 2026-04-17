@@ -3,6 +3,7 @@
 import { useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { X, ZoomIn } from 'lucide-react';
+import { SORO_BLUR_PLACEHOLDER } from '@/lib/image-utils';
 
 interface ImageLightboxProps {
   src: string;
@@ -46,7 +47,7 @@ export function ImageLightbox({
       <button
         onClick={onOpen}
         className={`relative group cursor-zoom-in overflow-hidden ${className}`}
-        aria-label="Agrandir la photo"
+        aria-label={`Agrandir la photo de ${alt}`}
         type="button"
         style={{ height: height !== '260px' ? height : undefined }}
       >
@@ -60,6 +61,8 @@ export function ImageLightbox({
             fill
             className={objectCover ? "object-cover" : "object-contain"}
             sizes="(max-width: 640px) 100vw, 640px"
+            placeholder="blur"
+            blurDataURL={SORO_BLUR_PLACEHOLDER}
           />
         </div>
         {/* Zoom hint */}
@@ -102,6 +105,8 @@ export function ImageLightbox({
               style={{ maxHeight: '85dvh' }}
               sizes="(max-width: 640px) 100vw, 800px"
               priority
+              placeholder="blur"
+              blurDataURL={SORO_BLUR_PLACEHOLDER}
             />
           </div>
 

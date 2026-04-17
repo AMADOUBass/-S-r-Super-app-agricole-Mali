@@ -54,18 +54,22 @@ export default function PageVendre() {
   // Récupère le prix du marché quand produit + région changent
   useEffect(() => {
     if (!form.type || !form.region) return;
-
     setChargementPrix(true);
     setPrixMarche(null);
 
     api.get(`/prix?produit=${form.type}&region=${form.region}`)
       .then(res => {
         const prix = res.data?.data?.[0]?.prixKg;
-        if (prix) setPrixMarche(prix);
+        if (prix) {
+          setPrixMarche(prix);
+          // Pré-remplissage automatique si le champ est vide ou si on vient de changer de type
+          setForm(f => ({ ...f, prixFcfa: f.prixFcfa === '' ? String(prix) : f.prixFcfa }));
+        }
       })
       .catch(() => {})
       .finally(() => setChargementPrix(false));
   }, [form.type, form.region]);
+
 
   const handleGeolocation = () => {
     if (!navigator.geolocation) {
@@ -101,7 +105,8 @@ export default function PageVendre() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.type) { setErreur('Choisissez le type de produit'); return; }
+    if (!form.type) { setErreur('Choisissez un produit'); return; }
+    if (!form.commune) { setErreur('Veuillez indiquer votre commune'); return; }
 
     setChargement(true);
     setErreur('');
@@ -134,242 +139,194 @@ export default function PageVendre() {
     <div className="min-h-screen bg-surface-2 flex flex-col">
       <Header titre="Publier ma récolte" retour="/tableau-bord" />
 
-      <main className="flex-1 px-4 py-6 pb-10 max-w-xl mx-auto w-full">
-        <form onSubmit={handleSubmit} className="space-y-7">
+      <main className="flex-1 px-4 py-8 pb-32 max-w-xl mx-auto w-full">
+        <form onSubmit={handleSubmit} className="space-y-10">
 
-          {/* ── Choix du produit ── */}
-          <div>
-            <p className="section-label mb-1">Étape 1</p>
-            <h2 className="section-title mb-4">Quel produit ?</h2>
+          {/* ── SECTION 1 : PRODUIT ── */}
+          <section className="animate-fade-up">
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-foreground tracking-tight">1. Que vendez-vous ?</h2>
+              <p className="text-muted-fg text-sm">Sélectionnez votre produit</p>
+            </div>
+
             <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
               {TYPES_PRODUITS.map(p => (
                 <button
                   key={p.value}
                   type="button"
                   onClick={() => setForm(f => ({ ...f, type: p.value }))}
-                  className={`flex flex-col items-center gap-1 py-3 px-2 rounded-xl border-2 text-xs font-semibold transition-all duration-200 ${
-                    form.type === p.value
-                      ? 'border-primary-600 bg-primary-50 text-primary-700 shadow-sm scale-105'
-                      : 'border-border bg-white text-foreground-3 hover:border-border-strong hover:bg-surface-2'
-                  }`}
+                  className={`
+                    flex flex-col items-center gap-1.5 py-4 px-2 rounded-2xl border-2 transition-all duration-200
+                    ${form.type === p.value
+                      ? 'border-primary-600 bg-primary-50 text-primary-700 shadow-sm'
+                      : 'border-white bg-white text-foreground-3 hover:border-primary-100'
+                    }
+                  `}
                 >
-                  <span className="text-xl">{p.emoji}</span>
-                  {p.label}
+                  <span className="text-2xl">{p.emoji}</span>
+                  <span className="text-[10px] font-bold uppercase">{p.label}</span>
                 </button>
               ))}
             </div>
-          </div>
+          </section>
 
-          {/* ── Région + Commune ── */}
-          <div>
-            <p className="section-label mb-1">Étape 2</p>
-            <h2 className="section-title mb-4">Où êtes-vous ?</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-bold text-foreground mb-1.5">Région</label>
-                <select
-                  value={form.region}
-                  onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
-                  className="input bg-white"
-                >
-                  {REGIONS.map(r => (
-                    <option key={r} value={r}>{r.charAt(0) + r.slice(1).toLowerCase()}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-bold text-foreground mb-1.5">Commune</label>
-                <input
-                  type="text"
-                  value={form.commune}
-                  onChange={e => setForm(f => ({ ...f, commune: e.target.value }))}
-                  placeholder="Niono…"
-                  className="input"
-                  required
-                />
-              </div>
+          {/* ── SECTION 2 : LOCALISATION ── */}
+          <section className="animate-fade-up" style={{animationDelay: '100ms'}}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-foreground tracking-tight">2. Origine</h2>
             </div>
-
-            <div className="mt-3">
+            
+            <div className="card-glass p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-fg">Région</label>
+                  <select
+                    value={form.region}
+                    onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
+                    className="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-sm font-bold"
+                  >
+                    {REGIONS.map(r => (
+                      <option key={r} value={r}>{r.charAt(0) + r.slice(1).toLowerCase()}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-fg">Commune</label>
+                  <input
+                    type="text"
+                    value={form.commune}
+                    onChange={e => setForm(f => ({ ...f, commune: e.target.value }))}
+                    className="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-sm font-bold"
+                    placeholder="Ex: Niono"
+                    required
+                  />
+                </div>
+              </div>
               <button
                 type="button"
                 onClick={handleGeolocation}
                 disabled={geolocating}
-                className={`flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                  form.latitude 
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
-                    : 'bg-white border-border text-foreground-3 hover:bg-surface-2'
-                }`}
+                className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-bold text-xs
+                  ${form.latitude ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-dashed border-border text-muted-fg hover:border-primary-300'}
+                `}
               >
-                {geolocating ? (
-                  <>
-                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
-                    Recherche GPS...
-                  </>
-                ) : form.latitude ? (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17L4 12"/></svg>
-                    Position enregistrée ({Number(form.latitude).toFixed(3)}, {Number(form.longitude).toFixed(3)})
-                  </>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    Ajouter ma position exacte
-                  </>
-                )}
+                {geolocating ? 'GPS...' : form.latitude ? '📍 Position GPS OK' : '🎯 Ajouter ma position GPS'}
               </button>
-              <p className="text-[10px] text-muted-fg mt-1.5 ml-1">
-                Aide les acheteurs à vous trouver plus facilement sur la carte.
-              </p>
             </div>
-          </div>
+          </section>
 
-          {/* ── Quantité + Prix ── */}
-          <div>
-            <p className="section-label mb-1">Étape 3</p>
-            <h2 className="section-title mb-4">Quantité et prix</h2>
+          {/* ── SECTION 3 : PRIX & QUANTITÉ ── */}
+          <section className="animate-fade-up" style={{animationDelay: '200ms'}}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-foreground tracking-tight">3. Prix et Quantité</h2>
+            </div>
 
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-bold text-foreground mb-1.5">Quantité disponible (kg)</label>
-                <input
-                  type="number"
-                  value={form.quantiteKg}
-                  onChange={e => setForm(f => ({ ...f, quantiteKg: e.target.value }))}
-                  placeholder="Ex: 500"
-                  min="1"
-                  className="input text-lg font-bold"
-                  required
-                />
-              </div>
+            <div className="card-glass p-6 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-fg">Quantité (kg)</label>
+                  <input
+                    type="number"
+                    value={form.quantiteKg}
+                    onChange={e => setForm(f => ({ ...f, quantiteKg: e.target.value }))}
+                    className="w-full bg-surface-3 border-none rounded-2xl px-5 py-4 text-2xl font-black text-primary-700"
+                    placeholder="0"
+                    required
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-black uppercase text-muted-fg">Prix / kg (FCFA)</label>
+                    {prixMarche && (
+                       <button 
+                        type="button"
+                        onClick={() => setForm(f => ({ ...f, prixFcfa: String(prixMarche) }))}
+                        className="bg-amber-100 text-amber-700 text-[10px] px-2 py-0.5 rounded-full font-bold"
+                       >
+                        Prix Marché: {prixMarche} F
+                       </button>
+                    )}
+                  </div>
+                  <input
+                    type="number"
+                    value={form.prixFcfa}
+                    onChange={e => setForm(f => ({ ...f, prixFcfa: e.target.value }))}
+                    className="w-full bg-surface-3 border-none rounded-2xl px-5 py-4 text-2xl font-black text-primary-700"
+                    placeholder="0"
+                    required
+                  />
 
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className="text-sm font-bold text-foreground">Prix par kg (FCFA)</label>
-
-                  {/* Badge prix du marché */}
-                  {form.type && form.region && (
-                    <div className="flex items-center gap-1.5">
-                      {chargementPrix ? (
-                        <span className="text-xs text-muted-fg animate-pulse">Chargement…</span>
-                      ) : prixMarche ? (
-                        <button
-                          type="button"
-                          onClick={() => setForm(f => ({ ...f, prixFcfa: String(prixMarche) }))}
-                          className="inline-flex items-center gap-1.5 bg-amber-50 border border-amber-200 text-amber-700 text-xs font-semibold px-2.5 py-1 rounded-full hover:bg-amber-100 transition-colors"
-                          title="Cliquer pour utiliser ce prix"
-                        >
-                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
-                          Marché {produitSelectionne?.label} : {prixMarche} F/kg
-                        </button>
-                      ) : null}
+                  {/* Analyse comparative en temps réel */}
+                  {form.prixFcfa && prixMarche && (
+                    <div className="mt-2 text-[10px] font-bold uppercase tracking-wide flex items-center gap-2">
+                       <span className={`px-2 py-0.5 rounded-md ${
+                        parseInt(form.prixFcfa) > prixMarche
+                          ? 'bg-red-50 text-red-600'
+                          : parseInt(form.prixFcfa) < prixMarche
+                            ? 'bg-emerald-50 text-emerald-600 border border-emerald-100'
+                            : 'bg-primary-50 text-primary-600'
+                       }`}>
+                         {parseInt(form.prixFcfa) > prixMarche
+                           ? `📈 +${Math.round((parseInt(form.prixFcfa) / prixMarche - 1) * 100)}% vs Marché`
+                           : parseInt(form.prixFcfa) < prixMarche
+                             ? `📉 -${Math.round((1 - parseInt(form.prixFcfa) / prixMarche) * 100)}% vs Marché`
+                             : '✨ Prix du Marché'}
+                       </span>
                     </div>
                   )}
                 </div>
-
-                <input
-                  type="number"
-                  value={form.prixFcfa}
-                  onChange={e => setForm(f => ({ ...f, prixFcfa: e.target.value }))}
-                  placeholder={prixMarche ? `Ex: ${prixMarche}` : 'Ex: 300'}
-                  min="1"
-                  className="input text-lg font-bold"
-                  required
-                />
-
-                <div className="flex items-center justify-between mt-2">
-                  <p className="text-xs text-muted-fg flex items-center gap-1">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
-                    Vous recevez 100% — 0% de commission
-                  </p>
-                  {form.prixFcfa && prixMarche && (
-                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
-                      parseInt(form.prixFcfa) > prixMarche
-                        ? 'bg-red-50 text-red-600'
-                        : parseInt(form.prixFcfa) < prixMarche * 0.9
-                          ? 'bg-amber-50 text-amber-600'
-                          : 'bg-primary-50 text-primary-700'
-                    }`}>
-                      {parseInt(form.prixFcfa) > prixMarche
-                        ? `+${Math.round((parseInt(form.prixFcfa) / prixMarche - 1) * 100)}% vs marché`
-                        : parseInt(form.prixFcfa) < prixMarche
-                          ? `-${Math.round((1 - parseInt(form.prixFcfa) / prixMarche) * 100)}% vs marché`
-                          : '= Prix du marché'}
-                    </span>
-                  )}
-                </div>
               </div>
             </div>
-          </div>
+          </section>
 
-          {/* ── Photo ── */}
-          <div>
-            <p className="section-label mb-1">Étape 4</p>
-            <h2 className="section-title mb-4">Photo <span className="text-muted-fg font-normal text-sm">(optionnel)</span></h2>
+          {/* ── SECTION 4 : PHOTO & DESCRIPTION ── */}
+          <section className="animate-fade-up" style={{animationDelay: '300ms'}}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-foreground tracking-tight">4. Photo et Infos</h2>
+            </div>
 
-            <label className="block cursor-pointer">
-              {photoPreview ? (
-                <div className="relative w-full rounded-2xl overflow-hidden" style={{aspectRatio:'16/9'}}>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                    <span className="text-white font-semibold text-sm">Changer la photo</span>
+            <div className="space-y-6">
+              <label className="block cursor-pointer">
+                {photoPreview ? (
+                  <div className="relative rounded-3xl overflow-hidden aspect-video border-4 border-white shadow-lg">
+                    <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
                   </div>
-                </div>
-              ) : (
-                <div className="w-full rounded-2xl border-2 border-dashed border-border hover:border-primary-400 bg-white hover:bg-primary-50/30 transition-all duration-200 flex flex-col items-center justify-center py-10 gap-3">
-                  <div className="w-12 h-12 rounded-xl bg-surface-3 flex items-center justify-center">
-                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.8" strokeLinecap="round">
-                      <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/>
-                      <circle cx="12" cy="13" r="4"/>
-                    </svg>
+                ) : (
+                  <div className="w-full py-10 rounded-3xl border-2 border-dashed border-border bg-white flex flex-col items-center justify-center gap-2 hover:bg-primary-50 transition-colors">
+                    <span className="text-4xl">📸</span>
+                    <p className="text-sm font-bold text-foreground-3">Ajouter une photo</p>
                   </div>
-                  <div className="text-center">
-                    <p className="text-sm font-semibold text-foreground-3">Ajouter une photo</p>
-                    <p className="text-xs text-muted-fg mt-0.5">Aide les acheteurs à mieux choisir</p>
-                  </div>
-                </div>
-              )}
-              <input type="file" accept="image/*" capture="environment" className="hidden" onChange={handlePhoto} />
-            </label>
-          </div>
+                )}
+                <input type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
+              </label>
 
-          {/* ── Description ── */}
-          <div>
-            <label className="block text-sm font-bold text-foreground mb-1.5">
-              Description <span className="text-muted-fg font-normal">(optionnel)</span>
-            </label>
-            <textarea
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="Qualité, variété, conditions de stockage…"
-              rows={3}
-              className="input resize-none"
-            />
-          </div>
+              <textarea
+                value={form.description}
+                onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                rows={3}
+                placeholder="Un petit mot sur la qualité..."
+                className="w-full bg-white rounded-2xl p-5 text-sm font-medium border-none shadow-sm focus:ring-2 ring-primary-100"
+              />
+            </div>
+          </section>
 
           {erreur && (
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm animate-scale-in">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0">
-                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-              </svg>
+            <div className="flex items-center gap-3 bg-red-50 border border-red-100 rounded-2xl px-5 py-4 text-red-700 text-sm font-bold">
               {erreur}
             </div>
           )}
 
-          <button type="submit" disabled={chargement} className="btn btn-primary w-full btn-lg">
+          <button
+            type="submit"
+            disabled={chargement}
+            className="w-full h-16 rounded-2xl bg-primary-700 text-white font-black text-xl shadow-xl shadow-primary-200 flex items-center justify-center gap-3"
+          >
             {chargement ? (
-              <>
-                <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/>
-                  <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/>
-                </svg>
-                Publication…
-              </>
+              <svg className="animate-spin w-6 h-6" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
             ) : (
               <>
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-                Publier mon annonce
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                Publier maintenant
               </>
             )}
           </button>

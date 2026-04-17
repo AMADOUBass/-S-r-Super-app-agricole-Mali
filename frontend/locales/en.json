@@ -10,7 +10,8 @@
     "dashboard": "Dashboard",
     "profile": "Profile",
     "login": "Login",
-    "publish": "Publish"
+    "publish": "Publish",
+    "publish_short": "Post"
   },
   "home": {
     "hero_title": "Sell your harvests at the best price",
@@ -59,7 +60,45 @@
     "verify_title": "Verification",
     "verify_subtitle": "Enter the code received by SMS",
     "verify_btn": "Verify",
-    "resend": "Resend code"
+    "resend": "Resend code",
+    "logout": "Logout",
+    "login_btn": "Login",
+    "login_title": "Welcome back!",
+    "login_subtitle": "Login to your Sɔrɔ account",
+    "signup_title": "Create my account",
+    "signup_subtitle": "Join the largest agricultural marketplace in Mali",
+    "phone": "Phone",
+    "email_premium": "Email / Premium",
+    "phone_label": "Phone number",
+    "phone_helper": "You will receive a code by SMS",
+    "email_label": "Email Address",
+    "password_label": "Password",
+    "password_placeholder": "••••••••",
+    "no_account": "No account yet?",
+    "already_registered": "Already registered?",
+    "register_free": "Register for free",
+    "step": "Step",
+    "continue": "Continue",
+    "back": "Back",
+    "im": "I am...",
+    "full_name": "Full name",
+    "region": "Region",
+    "commune": "Commune",
+    "verify_title": "Verify your number",
+    "verify_success": "Connected!",
+    "verify_sent": "6-digit code sent to",
+    "confirm_code": "Confirm code",
+    "resend_code": "Resend SMS code",
+    "resend_sent": "Code resent — remaining",
+    "whatsapp_help": "Receive via WhatsApp",
+    "roles": {
+      "AGRICULTEUR": "Farmer",
+      "AGRICULTEUR_DESC": "I sell my harvests",
+      "ACHETEUR": "Buyer",
+      "ACHETEUR_DESC": "I am looking for products",
+      "BOUTIQUE": "Shop / Pro",
+      "BOUTIQUE_DESC": "Regular supply"
+    }
   },
   "messages": {
     "title": "Discussions",
@@ -69,7 +108,9 @@
     "no_messages": "No messages",
     "start_chat": "Start discussion",
     "placeholder": "Write a message...",
-    "recording": "Recording..."
+    "recording": "Recording...",
+    "today": "Today",
+    "yesterday": "Yesterday"
   },
   "orders": {
     "status_EN_ATTENTE": "Pending",

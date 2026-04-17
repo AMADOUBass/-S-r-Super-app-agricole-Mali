@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n';
+import { SORO_BLUR_PLACEHOLDER } from '@/lib/image-utils';
 
 const EMOJI: Record<string, string> = {
   BOEUF: '🐄', MOUTON: '🐑', CHEVRE: '🐐',
@@ -107,6 +108,8 @@ export function ElevageDetailClient({ animal }: { animal: Animal }) {
                   fill
                   className="object-cover blur-2xl opacity-40 scale-110"
                   aria-hidden="true"
+                  placeholder="blur"
+                  blurDataURL={SORO_BLUR_PLACEHOLDER}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/0 to-black/75" />
               </div>

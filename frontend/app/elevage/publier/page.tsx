@@ -96,187 +96,172 @@ export default function PagePublierAnimal() {
     <div className="min-h-screen bg-surface-2 flex flex-col">
       <Header titre="Vendre un animal" retour="/elevage" />
 
-      <main className="flex-1 px-4 py-6 pb-10 max-w-xl mx-auto w-full">
-        <form onSubmit={handleSubmit} className="space-y-7">
+      <main className="flex-1 px-4 py-8 pb-32 max-w-xl mx-auto w-full">
+        <form onSubmit={handleSubmit} className="space-y-10">
 
-          {/* Type animal */}
-          <div>
-            <p className="section-label mb-1">Étape 1</p>
-            <h2 className="section-title mb-4">Quel animal ?</h2>
-            <div className="grid grid-cols-4 gap-2">
-              {TYPES.map(t => (
-                <button
-                  key={t.value}
-                  type="button"
-                  onClick={() => setForm(f => ({ ...f, type: t.value }))}
-                  className={`flex flex-col items-center gap-1 py-3 px-1 rounded-xl border-2 text-xs font-semibold transition-all duration-200 ${
-                    form.type === t.value
-                      ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-sm scale-105'
-                      : 'border-border bg-white text-foreground-3 hover:border-border-strong'
-                  }`}
-                >
-                  <span className="text-2xl">{t.emoji}</span>
-                  {t.label}
-                </button>
-              ))}
+          {/* ── SECTION 1 : QUEL ANIMAL ? ── */}
+          <section className="animate-fade-up">
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-foreground tracking-tight">1. Quel animal ?</h2>
             </div>
-          </div>
-
-          {/* Localisation */}
-          <div>
-            <p className="section-label mb-1">Étape 2</p>
-            <h2 className="section-title mb-4">Où êtes-vous ?</h2>
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-sm font-bold text-foreground mb-1.5">Région</label>
-                <select
-                  value={form.region}
-                  onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
-                  className="input bg-white"
-                >
-                  {REGIONS.map(r => (
-                    <option key={r} value={r}>{r.charAt(0) + r.slice(1).toLowerCase()}</option>
-                  ))}
-                </select>
+            
+            <div className="card-glass p-5">
+              <div className="grid grid-cols-3 gap-3">
+                {TYPES.map(t => (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setForm(f => ({ ...f, type: t.value }))}
+                    className={`flex flex-col items-center gap-2 py-4 px-2 rounded-2xl border-2 transition-all duration-300 ${
+                      form.type === t.value
+                        ? 'border-rose-500 bg-rose-50 text-rose-700 shadow-lg shadow-rose-100 scale-[1.03]'
+                        : 'border-transparent bg-white/50 text-muted-fg hover:border-border hover:bg-white'
+                    }`}
+                  >
+                    <span className="text-3xl">{t.emoji}</span>
+                    <span className="text-[11px] font-black uppercase tracking-wider">{t.label}</span>
+                  </button>
+                ))}
               </div>
-              <div>
-                <label className="block text-sm font-bold text-foreground mb-1.5">Commune</label>
-                <input
-                  type="text"
-                  value={form.commune}
-                  onChange={e => setForm(f => ({ ...f, commune: e.target.value }))}
-                  placeholder="Niono…"
-                  className="input"
-                  required
-                />
-              </div>
-            </div>
 
-            <div className="mt-3">
-              <button
-                type="button"
-                onClick={handleGeolocation}
-                disabled={geolocating}
-                className={`flex items-center gap-2 text-xs font-bold px-4 py-2.5 rounded-xl border transition-all duration-200 ${
-                  form.latitude 
-                    ? 'bg-emerald-50 border-emerald-200 text-emerald-700' 
-                    : 'bg-white border-border text-foreground-3 hover:bg-surface-2'
-                }`}
-              >
-                {geolocating ? (
-                  <>
-                    <svg className="animate-spin h-3 w-3" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
-                    Recherche GPS...
-                  </>
-                ) : form.latitude ? (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="M20 6L9 17L4 12"/></svg>
-                    Position enregistrée ({Number(form.latitude).toFixed(3)}, {Number(form.longitude).toFixed(3)})
-                  </>
-                ) : (
-                  <>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                    Ajouter ma position exacte
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-
-          {/* Caractéristiques */}
-          <div>
-            <p className="section-label mb-1">Étape 3</p>
-            <h2 className="section-title mb-4">Caractéristiques</h2>
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-bold text-foreground mb-1.5">
-                  Race <span className="text-muted-fg font-normal">(optionnel)</span>
-                </label>
+              <div className="mt-6">
+                <label className="text-xs font-black uppercase text-muted-fg mb-1.5 block">Race ou Variété</label>
                 <input
                   type="text"
                   value={form.race}
                   onChange={e => setForm(f => ({ ...f, race: e.target.value }))}
-                  placeholder="Ex: Azawak, Peul…"
-                  className="input"
+                  placeholder="Ex: Peul, Azawak..."
+                  className="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-sm font-bold"
                 />
               </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-sm font-bold text-foreground mb-1.5">
-                    Âge (mois) <span className="text-muted-fg font-normal">(optionnel)</span>
-                  </label>
+            </div>
+          </section>
+
+          {/* ── SECTION 2 : VÔTRE LIEU ── */}
+          <section className="animate-fade-up" style={{animationDelay: '100ms'}}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-foreground tracking-tight">2. Votre Lieu</h2>
+            </div>
+
+            <div className="card-glass p-6 space-y-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-fg">Région</label>
+                  <select
+                    value={form.region}
+                    onChange={e => setForm(f => ({ ...f, region: e.target.value }))}
+                    className="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-sm font-bold appearance-none"
+                  >
+                    {REGIONS.map(r => (
+                      <option key={r} value={r}>{r}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-fg">Commune</label>
+                  <input
+                    type="text"
+                    value={form.commune}
+                    onChange={e => setForm(f => ({ ...f, commune: e.target.value }))}
+                    className="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-sm font-bold"
+                    placeholder="Ex: Niono"
+                    required
+                  />
+                </div>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleGeolocation}
+                disabled={geolocating}
+                className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 transition-all font-bold text-xs
+                  ${form.latitude ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-dashed border-border text-muted-fg hover:border-primary-300'}
+                `}
+              >
+                {geolocating ? (
+                  <div className="flex items-center gap-2">
+                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+                    Recherche...
+                  </div>
+                ) : form.latitude ? '📍 Position GPS Enregistrée' : '🎯 Ajouter ma position GPS'}
+              </button>
+            </div>
+          </section>
+
+          {/* ── SECTION 3 : PRIX & INFOS ── */}
+          <section className="animate-fade-up" style={{animationDelay: '200ms'}}>
+            <div className="mb-6">
+              <h2 className="text-2xl font-black text-foreground tracking-tight">3. Prix et Infos</h2>
+            </div>
+
+            <div className="card-glass p-6 space-y-5">
+              <div className="space-y-1.5">
+                <label className="text-xs font-black uppercase text-muted-fg">Prix de vente (FCFA)</label>
+                <input
+                  type="number"
+                  value={form.prixFcfa}
+                  onChange={e => setForm(f => ({ ...f, prixFcfa: e.target.value }))}
+                  className="w-full bg-surface-3 border-none rounded-2xl px-5 py-4 text-3xl font-black text-rose-600"
+                  placeholder="0"
+                  required
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-fg">Âge (mois)</label>
                   <input
                     type="number"
                     value={form.age}
                     onChange={e => setForm(f => ({ ...f, age: e.target.value }))}
+                    className="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-sm font-bold"
                     placeholder="Ex: 24"
-                    min="1"
-                    className="input"
                   />
                 </div>
-                <div>
-                  <label className="block text-sm font-bold text-foreground mb-1.5">
-                    Poids (kg) <span className="text-muted-fg font-normal">(optionnel)</span>
-                  </label>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-black uppercase text-muted-fg">Poids (kg)</label>
                   <input
                     type="number"
                     value={form.poidsKg}
                     onChange={e => setForm(f => ({ ...f, poidsKg: e.target.value }))}
+                    className="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-sm font-bold"
                     placeholder="Ex: 150"
-                    min="1"
-                    className="input"
                   />
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* Prix */}
-          <div>
-            <p className="section-label mb-1">Étape 4</p>
-            <h2 className="section-title mb-4">Prix de vente</h2>
-            <div>
-              <label className="block text-sm font-bold text-foreground mb-1.5">Prix (FCFA)</label>
-              <input
-                type="number"
-                value={form.prixFcfa}
-                onChange={e => setForm(f => ({ ...f, prixFcfa: e.target.value }))}
-                placeholder="Ex: 250000"
-                min="1"
-                className="input text-lg font-bold"
-                required
-              />
+              <div className="space-y-1.5">
+                <label className="text-xs font-black uppercase text-muted-fg">Description libre</label>
+                <textarea
+                  value={form.description}
+                  onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                  placeholder="État de santé, alimentation..."
+                  rows={3}
+                  className="w-full bg-surface-3 border-none rounded-xl px-4 py-3 text-sm font-bold resize-none"
+                />
+              </div>
             </div>
-          </div>
-
-          {/* Description */}
-          <div>
-            <label className="block text-sm font-bold text-foreground mb-1.5">
-              Description <span className="text-muted-fg font-normal">(optionnel)</span>
-            </label>
-            <textarea
-              value={form.description}
-              onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-              placeholder="État de santé, vaccinations, alimentation…"
-              rows={3}
-              className="input resize-none"
-            />
-          </div>
+          </section>
 
           {erreur && (
-            <div className="flex items-center gap-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-red-700 text-sm">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="flex-shrink-0"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-              {erreur}
+            <div className="bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border border-red-100 animate-shake">
+              ⚠️ {erreur}
             </div>
           )}
 
-          <button type="submit" disabled={chargement} className="btn w-full btn-lg bg-rose-600 hover:bg-rose-700 text-white font-bold rounded-2xl">
+          <button
+            type="submit"
+            disabled={chargement}
+            className="w-full h-16 rounded-2xl bg-rose-600 text-white font-black text-xl shadow-xl shadow-rose-200 flex items-center justify-center gap-3 active:scale-95 transition-transform"
+          >
             {chargement ? (
-              <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
+              <svg className="animate-spin w-6 h-6" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.3"/><path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
             ) : (
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+              <>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                Publier l'annonce
+              </>
             )}
-            Publier l'annonce
           </button>
 
         </form>

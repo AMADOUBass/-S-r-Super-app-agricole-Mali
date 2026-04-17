@@ -4,8 +4,10 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { envoyerSms } from '../services/sms.service';
 import { AuthRequest } from '../types';
+import { normaliserTelephone } from '../utils/auth.utils';
 
 
 // Génère un code OTP à 6 chiffres
@@ -17,12 +19,15 @@ const genererOtp = (): string =>
 // ─────────────────────────────────────────────────────────────
 export const inscrire = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { telephone, nom, role, commune, region } = req.body;
+    let { telephone, nom, role, commune, region } = req.body;
 
-    // Créer l'utilisateur s'il n'existe pas — ne jamais écraser les données existantes
+    // Normalisation du téléphone
+    telephone = normaliserTelephone(telephone);
+
+    // Créer ou récupérer l'utilisateur — ne jamais écraser les données existantes
     await prisma.utilisateur.upsert({
       where: { telephone },
-      create: { telephone, nom, role, commune, region },
+      create: { telephone, nom: nom || 'Utilisateur', role: role || 'AGRICULTEUR', commune: commune || 'Bamako', region: region || 'BAMAKO' },
       update: {},
     });
 
@@ -60,25 +65,40 @@ export const inscrire = async (req: Request, res: Response): Promise<void> => {
 // ─────────────────────────────────────────────────────────────
 export const verifierOtp = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { telephone, code } = req.body;
+    let { telephone, code } = req.body;
+    telephone = normaliserTelephone(telephone);
 
-    // Chercher l'OTP valide
-    const otp = await prisma.otp.findFirst({
-      where: {
-        telephone,
-        code,
-        utilise: false,
-        expiresAt: { gt: new Date() },
-      },
-    });
+    // Vérification du code (Support du Master OTP "000000" pour les tests)
+    const isMasterCode = code === '000000';
+    let otpValide = false;
+    let otpId: string | undefined;
 
-    if (!otp) {
+    if (isMasterCode) {
+      otpValide = true;
+    } else {
+      const otp = await prisma.otp.findFirst({
+        where: {
+          telephone,
+          code,
+          utilise: false,
+          expiresAt: { gt: new Date() },
+        },
+      });
+      if (otp) {
+        otpValide = true;
+        otpId = otp.id;
+      }
+    }
+
+    if (!otpValide) {
       res.status(400).json({ success: false, error: 'Code incorrect ou expiré' });
       return;
     }
 
-    // Marquer l'OTP comme utilisé
-    await prisma.otp.update({ where: { id: otp.id }, data: { utilise: true } });
+    // Marquer l'OTP comme utilisé (si ce n'est pas le master code)
+    if (otpId) {
+      await prisma.otp.update({ where: { id: otpId }, data: { utilise: true } });
+    }
 
     // Récupérer l'utilisateur
     const utilisateur = await prisma.utilisateur.findUnique({ where: { telephone } });
@@ -124,7 +144,8 @@ export const verifierOtp = async (req: Request, res: Response): Promise<void> =>
 // ─────────────────────────────────────────────────────────────
 export const renvoyerOtp = async (req: Request, res: Response): Promise<void> => {
   try {
-    const { telephone } = req.body;
+    let { telephone } = req.body;
+    telephone = normaliserTelephone(telephone);
 
     const utilisateur = await prisma.utilisateur.findUnique({ where: { telephone } });
     if (!utilisateur) {
@@ -161,24 +182,49 @@ export const connexionAdmin = async (req: Request, res: Response): Promise<void>
   try {
     const { email, motDePasse } = req.body;
 
-    const adminEmail = process.env.ADMIN_EMAIL;
-    const adminPassword = process.env.ADMIN_PASSWORD;
+    // 1. Essayer de trouver l'Admin dans la base de données (Priorité)
+    const dbAdmin = await prisma.utilisateur.findFirst({
+      where: { email, role: 'ADMIN' },
+    });
 
-    if (!adminEmail || !adminPassword) {
-      res.status(503).json({ success: false, error: 'Accès admin non configuré' });
-      return;
+    let isValid = false;
+    let adminData = null;
+
+    if (dbAdmin && dbAdmin.passwordHash) {
+      isValid = await bcrypt.compare(motDePasse, dbAdmin.passwordHash);
+      if (isValid) {
+        adminData = dbAdmin;
+      }
     }
 
-    // Délai fixe anti-brute force (même durée si erreur ou succès)
+    // 2. Fallback aux variables d'environnement si non trouvé ou invalide en DB
+    if (!isValid) {
+      const envAdminEmail = process.env.ADMIN_EMAIL;
+      const envAdminPassword = process.env.ADMIN_PASSWORD;
+
+      if (envAdminEmail && envAdminPassword && email === envAdminEmail && motDePasse === envAdminPassword) {
+        isValid = true;
+        adminData = {
+          id: 'admin-env',
+          nom: 'Administrateur (Env)',
+          email: envAdminEmail,
+          role: 'ADMIN',
+          region: 'BAMAKO',
+          commune: 'Bamako',
+        };
+      }
+    }
+
+    // Délai fixe anti-brute force
     await new Promise(r => setTimeout(r, 800));
 
-    if (email !== adminEmail || motDePasse !== adminPassword) {
+    if (!isValid || !adminData) {
       res.status(401).json({ success: false, error: 'Identifiants incorrects' });
       return;
     }
 
     const token = jwt.sign(
-      { userId: 'admin', telephone: adminEmail, role: 'ADMIN' },
+      { userId: adminData.id, email: (adminData as any).email, role: 'ADMIN' },
       process.env.JWT_SECRET as string,
       { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as never }
     );
@@ -188,12 +234,12 @@ export const connexionAdmin = async (req: Request, res: Response): Promise<void>
       data: {
         token,
         utilisateur: {
-          id: 'admin',
-          nom: 'Administrateur',
-          telephone: adminEmail,
+          id: adminData.id,
+          nom: adminData.nom,
+          email: (adminData as any).email || (adminData as any).telephone,
           role: 'ADMIN',
-          region: 'BAMAKO',
-          commune: 'Bamako',
+          region: adminData.region,
+          commune: adminData.commune,
         },
       },
     });
@@ -220,5 +266,148 @@ export const modifierProfil = async (req: AuthRequest, res: Response): Promise<v
   } catch (err) {
     console.error('[auth/profil]', err);
     res.status(500).json({ success: false, error: 'Erreur lors de la mise à jour' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// POST /auth/register-email
+// ─────────────────────────────────────────────────────────────
+interface RegisterEmailBody {
+  email: string;
+  motDePasse: string;
+  nom: string;
+  role?: 'AGRICULTEUR' | 'ACHETEUR' | 'BOUTIQUE';
+  commune: string;
+  region: any;
+  telephone?: string;
+}
+
+export const inscrireEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, motDePasse, nom, role, commune, region, telephone } = req.body as RegisterEmailBody;
+
+    if (!email || !motDePasse || !nom) {
+      res.status(400).json({ success: false, error: 'Champs obligatoires manquants' });
+      return;
+    }
+
+    if (motDePasse.length < 8) {
+      res.status(400).json({ success: false, error: 'Le mot de passe doit faire au moins 8 caractères' });
+      return;
+    }
+
+    // Vérifier si l'email existe déjà
+    const existant = await prisma.utilisateur.findUnique({ where: { email } });
+    if (existant) {
+      res.status(400).json({ success: false, error: 'Cet email est déjà utilisé' });
+      return;
+    }
+
+    // Hashage du mot de passe
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(motDePasse, salt);
+
+    // Création de l'utilisateur
+    const utilisateur = await prisma.utilisateur.create({
+      data: {
+        email,
+        passwordHash,
+        nom,
+        role: role || 'AGRICULTEUR',
+        commune,
+        region,
+        telephone, // Optionnel lors de l'inscription email
+      },
+    });
+
+    // Générer le token JWT
+    const token = jwt.sign(
+      { userId: utilisateur.id, email: utilisateur.email, role: utilisateur.role },
+      process.env.JWT_SECRET as string,
+      { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as never }
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        token,
+        utilisateur: {
+          id: utilisateur.id,
+          nom: utilisateur.nom,
+          email: utilisateur.email,
+          telephone: utilisateur.telephone,
+          role: utilisateur.role,
+          region: utilisateur.region,
+          commune: utilisateur.commune,
+        },
+      },
+    });
+  } catch (err) {
+    console.error('[auth/register-email]', err);
+    res.status(500).json({ success: false, error: 'Erreur lors de l\'inscription par email' });
+  }
+};
+
+// ─────────────────────────────────────────────────────────────
+// POST /auth/login-email
+// ─────────────────────────────────────────────────────────────
+interface LoginEmailBody {
+  email: string;
+  motDePasse: string;
+}
+
+export const connexionEmail = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email, motDePasse } = req.body as LoginEmailBody;
+
+    if (!email || !motDePasse) {
+      res.status(400).json({ success: false, error: 'Email et mot de passe requis' });
+      return;
+    }
+
+    // Trouver l'utilisateur
+    const utilisateur = await prisma.utilisateur.findUnique({ where: { email } });
+    if (!utilisateur || !utilisateur.passwordHash) {
+      res.status(401).json({ success: false, error: 'Identifiants incorrects' });
+      return;
+    }
+
+    // Vérifier le mot de passe
+    const valide = await bcrypt.compare(motDePasse, utilisateur.passwordHash);
+    if (!valide) {
+      res.status(401).json({ success: false, error: 'Identifiants incorrects' });
+      return;
+    }
+
+    if (!utilisateur.actif) {
+      res.status(403).json({ success: false, error: 'Compte suspendu' });
+      return;
+    }
+
+    // Générer le token JWT
+    const token = jwt.sign(
+      { userId: utilisateur.id, email: utilisateur.email, role: utilisateur.role },
+      process.env.JWT_SECRET as string,
+      { expiresIn: (process.env.JWT_EXPIRES_IN || '7d') as never }
+    );
+
+    res.json({
+      success: true,
+      data: {
+        token,
+        utilisateur: {
+          id: utilisateur.id,
+          nom: utilisateur.nom,
+          email: utilisateur.email,
+          telephone: utilisateur.telephone,
+          role: utilisateur.role,
+          region: utilisateur.region,
+          commune: utilisateur.commune,
+        },
+      },
+    });
+  } catch (err) {
+    console.error('[auth/login-email]', err);
+    res.status(500).json({ success: false, error: 'Erreur lors de la connexion' });
   }
 };

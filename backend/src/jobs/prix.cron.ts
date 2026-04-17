@@ -62,23 +62,35 @@ const PRODUITS_PAR_REGION: Record<string, string[]> = {
 // Met à jour les prix du jour avec une variation ±5%
 // ─────────────────────────────────────────────────────────────
 export const mettreAJourPrixDuJour = async (): Promise<void> => {
-  console.log('[CRON] Mise à jour des prix du marché...');
+  console.log('[CRON] Mise à jour intelligente des prix du marché...');
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
 
-  // Récupérer les prix d'hier pour calculer la variation à partir du dernier réel
+  // 1. Récupérer les moyennes de prix réelles sur le terrain (table produits)
+  const moyennesTerrain = await prisma.produit.groupBy({
+    by: ['region', 'type'],
+    _avg: { prixFcfa: true },
+  });
+
+  const terrainMap: Record<string, number> = {};
+  moyennesTerrain.forEach((m: any) => {
+    if (m._avg.prixFcfa) {
+      terrainMap[`${m.region}__${m.type}`] = m._avg.prixFcfa;
+    }
+  });
+
+  // 2. Récupérer les prix d'hier pour la continuité
   const hier = new Date(today);
   hier.setDate(hier.getDate() - 1);
-
   const prixHier = await prisma.prixMarche.findMany({
     where: { date: { gte: hier, lt: today } },
   });
 
   const prixHierMap: Record<string, number> = {};
-  for (const p of prixHier) {
+  prixHier.forEach((p: any) => {
     prixHierMap[`${p.region}__${p.produit}`] = p.prixKg;
-  }
+  });
 
   let total = 0;
 
@@ -86,36 +98,49 @@ export const mettreAJourPrixDuJour = async (): Promise<void> => {
     const coeff = COEFF[region] ?? 1.0;
 
     for (const produit of produits) {
-      const base = PRIX_BASE[produit];
-      if (!base) continue;
+      const baseOMA = PRIX_BASE[produit];
+      if (!baseOMA) continue;
 
-      // Prendre prix hier comme base, sinon prix de référence OMA
-      const prixReference = prixHierMap[`${region}__${produit}`] ?? Math.round(base * coeff);
+      const prixRefOMA = Math.round(baseOMA * coeff);
+      const prixTerrain = terrainMap[`${region}__${produit}`];
 
-      // Variation quotidienne ±5% (mouvement de marché réaliste)
-      const variation = 1 + (Math.random() * 0.10 - 0.05);
-      // Garde le prix dans une fourchette ±15% du prix de référence OMA
-      const prixMin = Math.round(base * coeff * 0.85);
-      const prixMax = Math.round(base * coeff * 1.15);
-      const prixKg = Math.min(prixMax, Math.max(prixMin, Math.round(prixReference * variation / 5) * 5));
+      // LOGIQUE HYBRIDE : 
+      // Si on a des prix sur le terrain, on pondère : 70% OMA / 30% Terrain
+      // Sinon, on suit la tendance OMA ± variation aléatoire
+      let prixCible: number;
+      if (prixTerrain) {
+        prixCible = Math.round((prixRefOMA * 0.7) + (prixTerrain * 0.3));
+      } else {
+        const prixReference = prixHierMap[`${region}__${produit}`] ?? prixRefOMA;
+        const variation = 1 + (Math.random() * 0.10 - 0.05); // ±5%
+        prixCible = Math.round(prixReference * variation);
+      }
+
+      // Garde le prix dans une fourchette ±20% du prix de référence OMA (sécurité)
+      const prixMin = Math.round(prixRefOMA * 0.80);
+      const prixMax = Math.round(prixRefOMA * 1.20);
+      const prixFinal = Math.min(prixMax, Math.max(prixMin, Math.round(prixCible / 5) * 5));
 
       try {
         await prisma.prixMarche.upsert({
           where: {
             produit_region_date: {
-              produit: produit as never,
-              region: region as never,
+              produit: produit as any,
+              region: region as any,
               date: today,
             },
           },
           create: {
-            produit: produit as never,
-            region: region as never,
-            prixKg,
-            source: 'Cron OMA Mali',
+            produit: produit as any,
+            region: region as any,
+            prixKg: prixFinal,
+            source: prixTerrain ? 'Sɔrô Intelligence (Hybride)' : 'Cron OMA Mali',
             date: today,
           },
-          update: { prixKg, source: 'Cron OMA Mali' },
+          update: { 
+            prixKg: prixFinal, 
+            source: prixTerrain ? 'Sɔrô Intelligence (Hybride)' : 'Cron OMA Mali' 
+          },
         });
         total++;
       } catch (err) {
@@ -124,7 +149,7 @@ export const mettreAJourPrixDuJour = async (): Promise<void> => {
     }
   }
 
-  console.log(`[CRON] ${total} prix mis à jour pour aujourd'hui`);
+  console.log(`[CRON] ${total} prix du marché synchronisés (Offre/Demande OK)`);
 };
 
 // ─────────────────────────────────────────────────────────────

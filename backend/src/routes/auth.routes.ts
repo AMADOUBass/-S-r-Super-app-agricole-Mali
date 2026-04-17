@@ -3,7 +3,15 @@
 // POST /auth/verify   → vérification OTP → retourne token JWT
 
 import { Router } from 'express';
-import { inscrire, verifierOtp, renvoyerOtp, modifierProfil, connexionAdmin } from '../controllers/auth.controller';
+import {
+  inscrire,
+  verifierOtp,
+  renvoyerOtp,
+  modifierProfil,
+  connexionAdmin,
+  inscrireEmail,
+  connexionEmail
+} from '../controllers/auth.controller';
 import { valider } from '../middleware/validate.middleware';
 import { authentifier } from '../middleware/auth.middleware';
 import { z } from 'zod';
@@ -21,7 +29,7 @@ const otpLimiter = rateLimit({
 });
 
 const schemaInscription = z.object({
-  telephone: z.string().regex(/^\+223\d{8}$/, 'Numéro malien requis (+223XXXXXXXX)'),
+  telephone: z.string().regex(/^\+\d{6,15}$/, 'Format international requis (+...)'),
   nom: z.string().min(2).max(100),
   role: z.enum(['AGRICULTEUR', 'ACHETEUR', 'BOUTIQUE']).default('AGRICULTEUR'),
   commune: z.string().min(2).max(100),
@@ -32,8 +40,21 @@ const schemaInscription = z.object({
 });
 
 const schemaVerification = z.object({
-  telephone: z.string().regex(/^\+223\d{8}$/),
+  telephone: z.string().regex(/^\+\d{6,15}$/),
   code: z.string().length(6),
+});
+
+const schemaEmailInscription = z.object({
+  email: z.string().email(),
+  motDePasse: z.string().min(8),
+  nom: z.string().min(2).max(100),
+  role: z.enum(['AGRICULTEUR', 'ACHETEUR', 'BOUTIQUE']).optional(),
+  commune: z.string().min(2).max(100),
+  region: z.enum([
+    'BAMAKO', 'KAYES', 'KOULIKORO', 'SIKASSO',
+    'SEGOU', 'MOPTI', 'TOMBOUCTOU', 'GAO', 'KIDAL', 'MENAKA', 'TAOUDENIT'
+  ]),
+  telephone: z.string().regex(/^\+\d{6,15}$/).optional(),
 });
 
 // POST /auth/register
@@ -50,6 +71,15 @@ router.post('/admin-login', valider(z.object({
   email: z.string().email(),
   motDePasse: z.string().min(8),
 })), connexionAdmin);
+
+// POST /auth/register-email
+router.post('/register-email', valider(schemaEmailInscription), inscrireEmail);
+
+// POST /auth/login-email
+router.post('/login-email', valider(z.object({
+  email: z.string().email(),
+  motDePasse: z.string().min(8),
+})), connexionEmail);
 
 // PUT /auth/profil — modifier nom, commune, région
 router.put('/profil', authentifier, valider(z.object({

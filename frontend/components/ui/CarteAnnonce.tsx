@@ -97,12 +97,23 @@ export function CarteAnnonce({ annonce, type }: CarteAnnonceProps) {
           cursor-pointer overflow-hidden
         "
       >
-        {/* Header: Badge Nouveauté */}
+        {/* Header: Badge Nouveauté Premium */}
         {nouveau && (
-          <div className="absolute top-3 left-3 z-20">
-            <span className="bg-primary-600 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg border border-white/30 transform -rotate-2 hover:rotate-0 transition-transform duration-300">
-              NOUVEAU
-            </span>
+          <div className="absolute top-4 left-4 z-20 animate-pulse-subtle">
+            <div className="
+              relative overflow-hidden px-3 py-1.5 rounded-full 
+              bg-emerald-600/90 backdrop-blur-md 
+              border border-white/20 shadow-[0_4px_12px_rgba(5,150,105,0.4)]
+              flex items-center gap-1.5
+            ">
+              <span className="relative flex h-1.5 w-1.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-white"></span>
+              </span>
+              <span className="text-white text-[10px] font-black tracking-widest uppercase">
+                Nouveau
+              </span>
+            </div>
           </div>
         )}
 

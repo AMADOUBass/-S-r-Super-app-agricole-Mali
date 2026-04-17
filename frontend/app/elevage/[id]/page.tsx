@@ -21,13 +21,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!animal) {
     return {
-      title: 'Annonce introuvable — Sɔrɔ',
+      title: 'Annonce introuvable | Sɔrô',
     };
   }
 
   const typeLabel = animal.type.charAt(0) + animal.type.slice(1).toLowerCase();
-  const title = `Vente ${typeLabel} à ${animal.commune} (${animal.region}) — Sɔrɔ`;
-  const description = `Achetez un ${typeLabel}${animal.race ? ` de race ${animal.race}` : ''} pour ${animal.prixFcfa.toLocaleString('fr')} FCFA. Contactez l'éleveur ${animal.vendeur.nom} sur Sɔrɔ, votre plateforme d'élevage au Mali.`;
+  const title = `${typeLabel} à vendre - ${animal.commune} | Sɔrô`;
+  const description = `${typeLabel}${animal.race ? ` (${animal.race})` : ''} à vendre pour ${animal.prixFcfa.toLocaleString('fr')} FCFA. Disponible à ${animal.commune} (${animal.region}) sur Sɔrô.`;
 
   return {
     title,
@@ -35,16 +35,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      type: 'website',
+      type: 'article',
       url: `https://soro.vercel.app/elevage/${animal.id}`,
       images: [
         {
           url: animal.photoUrl || 'https://soro.vercel.app/images/logo-soro.png',
-          width: 800,
-          height: 600,
-          alt: typeLabel,
+          width: 1200,
+          height: 630,
+          alt: `${typeLabel} à vendre`,
         },
       ],
+      siteName: 'Sɔrô',
     },
     twitter: {
       card: 'summary_large_image',

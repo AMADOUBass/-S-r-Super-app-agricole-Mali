@@ -14,7 +14,9 @@ datasource db {
 // ─────────────────────────────────────────────────────────────
 model Utilisateur {
   id          String   @id @default(cuid())
-  telephone   String   @unique                   // +22360000000
+  telephone   String?  @unique                   // +22360000000
+  email       String?  @unique
+  passwordHash String?
   nom         String
   role        Role     @default(AGRICULTEUR)
   commune     String

@@ -10,7 +10,8 @@
     "dashboard": "Tableau",
     "profile": "Profil",
     "login": "Connexion",
-    "publish": "Publier"
+    "publish": "Publier",
+    "publish_short": "Lase"
   },
   "home": {
     "hero_title": "Vendez vos récoltes au meilleur prix",
@@ -59,7 +60,45 @@
     "verify_title": "Vérification",
     "verify_subtitle": "Entrez le code reçu par SMS",
     "verify_btn": "Vérifier",
-    "resend": "Renvoyer le code"
+    "resend": "Renvoyer le code",
+    "logout": "Déconnexion",
+    "login_btn": "Se connecter",
+    "login_title": "Ravi de vous revoir !",
+    "login_subtitle": "Connectez-vous à votre espace Sɔrɔ",
+    "signup_title": "Créer mon compte",
+    "signup_subtitle": "Rejoignez la plus grande place de marché agricole du Mali",
+    "phone": "Téléphone",
+    "email_premium": "Email / Premium",
+    "phone_label": "Numéro de téléphone",
+    "phone_helper": "Vous recevrez un code par SMS",
+    "email_label": "Adresse Email",
+    "password_label": "Mot de passe",
+    "password_placeholder": "••••••••",
+    "no_account": "Pas encore de compte ?",
+    "already_registered": "Déjà inscrit ?",
+    "register_free": "S'inscrire gratuitement",
+    "step": "Étape",
+    "continue": "Continuer",
+    "back": "Retour",
+    "im": "Je suis...",
+    "full_name": "Nom complet",
+    "region": "Région",
+    "commune": "Commune",
+    "verify_title": "Vérifiez votre numéro",
+    "verify_success": "Connecté !",
+    "verify_sent": "Code à 6 chiffres envoyé au",
+    "confirm_code": "Confirmer le code",
+    "resend_code": "Renvoyer le code SMS",
+    "resend_sent": "Code renvoyé — encore",
+    "whatsapp_help": "Recevoir par WhatsApp",
+    "roles": {
+      "AGRICULTEUR": "Agriculteur",
+      "AGRICULTEUR_DESC": "Je vends mes récoltes",
+      "ACHETEUR": "Acheteur",
+      "ACHETEUR_DESC": "Je cherche des produits",
+      "BOUTIQUE": "Boutique / Pro",
+      "BOUTIQUE_DESC": "Approvisionnement régulier"
+    }
   },
   "messages": {
     "title": "Discussions",
@@ -69,7 +108,9 @@
     "no_messages": "Aucun message",
     "start_chat": "Démarrer la discussion",
     "placeholder": "Écrivez un message...",
-    "recording": "Enregistrement..."
+    "recording": "Enregistrement...",
+    "today": "Aujourd'hui",
+    "yesterday": "Hier"
   },
   "orders": {
     "status_EN_ATTENTE": "En attente",

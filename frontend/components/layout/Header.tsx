@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, ChevronDown, ArrowRight, LayoutDashboard, User, ShieldCheck, Plus, LogOut, Globe, MessageSquare } from 'lucide-react';
 import useStore from '@/store/useStore';
 import { useConversations } from '@/lib/queries';
+import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
 
 interface HeaderProps {
   titre?: string;
@@ -48,9 +49,7 @@ export function Header({ titre, retour }: HeaderProps) {
   }));
   const { data: conversations } = useConversations();
   const [menuOuvert, setMenuOuvert] = useState(false);
-  const [langOuvert, setLangOuvert] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const langRef = useRef<HTMLDivElement>(null);
 
   const toggleLocale = () => {
     const next: Record<string, 'FR' | 'EN' | 'BM'> = { FR: 'EN', EN: 'BM', BM: 'FR' };
@@ -63,9 +62,6 @@ export function Header({ titre, retour }: HeaderProps) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
         setMenuOuvert(false);
       }
-      if (langRef.current && !langRef.current.contains(e.target as Node)) {
-        setLangOuvert(false);
-      }
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -74,7 +70,8 @@ export function Header({ titre, retour }: HeaderProps) {
   const handleDeconnecter = () => {
     deconnecter();
     setMenuOuvert(false);
-    router.push('/');
+    // Un hard reset est préférable pour nettoyer tous les états clients/caches
+    window.location.href = '/';
   };
 
   const lienTableau = utilisateur?.role === 'AGRICULTEUR' ? '/tableau-bord' :
@@ -140,33 +137,7 @@ export function Header({ titre, retour }: HeaderProps) {
             </Link>
           )}
 
-          {/* Sélecteur de langue */}
-          <div className="relative" ref={langRef}>
-            <button
-              onClick={() => setLangOuvert(!langOuvert)}
-              className="w-9 h-9 flex items-center justify-center rounded-xl hover:bg-surface-3 transition-colors text-foreground-3 border border-border/40"
-              aria-label="Changer de langue"
-            >
-              <span className="text-[10px] font-bold">{locale}</span>
-            </button>
-
-            {langOuvert && (
-              <div className="absolute right-0 top-full mt-2 w-28 bg-white rounded-2xl shadow-float border border-border/40 overflow-hidden animate-scale-in z-50 py-1">
-                {(['FR', 'EN', 'BM'] as const).map((l) => (
-                  <button
-                    key={l}
-                    onClick={() => { setLocale(l); setLangOuvert(false); }}
-                    className={`w-full flex items-center justify-between px-4 py-2 text-xs font-bold transition-colors ${
-                      locale === l ? 'text-primary-700 bg-primary-50' : 'text-muted-fg hover:text-foreground hover:bg-surface-2'
-                    }`}
-                  >
-                    {l === 'FR' ? 'Français' : l === 'EN' ? 'English' : 'Bamanankan'}
-                    {locale === l && <div className="w-1 h-1 rounded-full bg-primary-600" />}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+          <LanguageSwitcher />
 
           {utilisateur ? (
             <div className="relative" ref={menuRef}>
@@ -238,11 +209,11 @@ export function Header({ titre, retour }: HeaderProps) {
                   </div>
 
                   <div className="border-t border-border/50 py-1.5">
-                    <button onClick={handleDeconnecter}
-                      className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
-                      <LogOut size={15} strokeWidth={2} />
-                      {t('auth.logout') || 'Déconnexion'}
-                    </button>
+                      <button onClick={handleDeconnecter}
+                        className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                        <LogOut size={15} strokeWidth={2} />
+                        {t('auth.logout')}
+                      </button>
                   </div>
                 </div>
               )}

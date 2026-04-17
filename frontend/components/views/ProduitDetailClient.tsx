@@ -12,6 +12,7 @@ import {
   ShoppingCart, Minus, Plus, Lock, ChevronRight, MessageSquare, Star
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
+import { SORO_BLUR_PLACEHOLDER } from '@/lib/image-utils';
 
 const EMOJI: Record<string, string> = {
   MIL: '🌾', SORGHO: '🌾', MAIS: '🌽', RIZ: '🍚', ARACHIDE: '🥜',
@@ -134,6 +135,8 @@ export function ProduitDetailClient({ produit }: { produit: Produit }) {
                   fill
                   className="object-cover blur-2xl opacity-40 scale-110"
                   aria-hidden="true"
+                  placeholder="blur"
+                  blurDataURL={SORO_BLUR_PLACEHOLDER}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-black/0 to-black/75" />
               </div>

@@ -10,7 +10,8 @@
     "dashboard": "Baara-yoro",
     "profile": "I tɔgɔ",
     "login": "I don",
-    "publish": "Lase"
+    "publish": "Lase",
+    "publish_short": "Lase"
   },
   "home": {
     "hero_title": "I ka sɛnɛ-fɛnw feere ni sɔngɔ bɛnnen ye",
@@ -59,7 +60,45 @@
     "verify_title": "Sariyajuru",
     "verify_subtitle": "Code min sera i ma SMS la",
     "verify_btn": "Sariyajuru",
-    "resend": "Code ci tuguni"
+    "resend": "Code ci tuguni",
+    "logout": "I bɔ",
+    "login_btn": "I don",
+    "login_title": "I ni baara Sɔrɔ kan!",
+    "login_subtitle": "Don i ka baara-yoro la",
+    "signup_title": "N ka baara-yoro dilan",
+    "signup_subtitle": "Don Mali ka sɛnɛ-fɛn feere-yoro belebele kɔnɔ",
+    "phone": "Telefɔnu",
+    "email_premium": "Email / Premium",
+    "phone_label": "Telefɔnu nimɔrɔ",
+    "phone_helper": "Code bɛ na i ma SMS la",
+    "email_label": "Email tɔgɔ",
+    "password_label": "Dogotogo",
+    "password_placeholder": "••••••••",
+    "no_account": "Baara-yoro si tɛ i fɛ fɔlɔ?",
+    "already_registered": "I tɔgɔ sɛbɛnnen don kabi fɔlɔ?",
+    "register_free": "I tɔgɔ sɛbɛn fu",
+    "step": "Yoro",
+    "continue": "Taa ɲɛ",
+    "back": "Kɔsegi",
+    "im": "Ne ye...",
+    "full_name": "I tɔgɔ bɛɛ",
+    "region": "Mara",
+    "commune": "Dugu",
+    "verify_title": "I ka nimɔrɔ sariyajuru",
+    "verify_success": "I donnen don!",
+    "verify_sent": "Code ci i ma nimɔrɔ nin kan",
+    "confirm_code": "Code sariyajuru",
+    "resend_code": "Code ci tuguni SMS la",
+    "resend_sent": "Code cira — kɔnɔ fɛnni",
+    "whatsapp_help": "A sɔrɔ WhatsApp kan",
+    "roles": {
+      "AGRICULTEUR": "Sɛnɛkɛla",
+      "AGRICULTEUR_DESC": "N bɛ n ka sɛnɛ-fɛnw feere",
+      "ACHETEUR": "Sanla",
+      "ACHETEUR_DESC": "N bɛ fɛn san naw fɛ",
+      "BOUTIQUE": "Boutiki / Pro",
+      "BOUTIQUE_DESC": "Fɛnw san tuman bɛɛ"
+    }
   },
   "messages": {
     "title": "Baro-yoro",
@@ -69,7 +108,9 @@
     "no_messages": "Kibaru si tɛ yan",
     "start_chat": "Baro daminɛ",
     "placeholder": "Kuma sɛbɛn...",
-    "recording": "Kuma bɛ minɛna..."
+    "recording": "Kuma bɛ minɛna...",
+    "today": "Bi",
+    "yesterday": "Kunu"
   },
   "orders": {
     "status_EN_ATTENTE": "A bɛ kɔnɔna la",

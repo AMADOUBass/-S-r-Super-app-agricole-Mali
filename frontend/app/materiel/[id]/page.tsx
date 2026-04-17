@@ -21,13 +21,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!materiel) {
     return {
-      title: 'Matériel introuvable — Sɔrɔ',
+      title: 'Matériel introuvable | Sɔrô',
     };
   }
 
   const typeLabel = materiel.type.charAt(0) + materiel.type.slice(1).toLowerCase();
-  const title = `Location ${typeLabel} à ${materiel.commune} (${materiel.region}) — Sɔrɔ`;
-  const description = `Louez un ${typeLabel} pour ${materiel.prixJour.toLocaleString('fr')} FCFA/jour. Caution : ${materiel.caution.toLocaleString('fr')} FCFA. Contactez le propriétaire ${materiel.proprietaire.nom} sur Sɔrɔ Mali.`;
+  const title = `${typeLabel} à louer - ${materiel.commune} | Sɔrô`;
+  const description = `${typeLabel} en location pour ${materiel.prixJour.toLocaleString('fr')} FCFA/jour. Caution : ${materiel.caution.toLocaleString('fr')} FCFA. Disponible à ${materiel.commune} (${materiel.region}) sur Sɔrô.`;
 
   return {
     title,
@@ -35,16 +35,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title,
       description,
-      type: 'website',
+      type: 'article',
       url: `https://soro.vercel.app/materiel/${materiel.id}`,
       images: [
         {
           url: materiel.photoUrl || 'https://soro.vercel.app/images/logo-soro.png',
-          width: 800,
-          height: 600,
-          alt: typeLabel,
+          width: 1200,
+          height: 630,
+          alt: `${typeLabel} à louer`,
         },
       ],
+      siteName: 'Sɔrô',
     },
     twitter: {
       card: 'summary_large_image',
