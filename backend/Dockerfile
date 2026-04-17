@@ -2,12 +2,11 @@ FROM node:20-alpine
 
 WORKDIR /app
 
-# Railway build context = repo root, so prefix with backend/
-COPY backend/package*.json ./
-COPY backend/prisma.config.ts ./
-COPY backend/tsconfig.json ./
-COPY backend/prisma ./prisma/
-COPY backend/src ./src/
+COPY package*.json ./
+COPY prisma.config.ts ./
+COPY tsconfig.json ./
+COPY prisma ./prisma/
+COPY src ./src/
 
 RUN npm ci
 
