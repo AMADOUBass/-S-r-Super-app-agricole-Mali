@@ -1,2 +1,2 @@
 [phases.build]
-cmds = ["npm install --omit=dev"]
+cmds = ["npm install --omit=dev", "npx --yes prisma generate"]

@@ -24,7 +24,7 @@ const router = Router();
 
 const schemaCommande = z.object({
   produitId: z.string().optional(),
-  quantiteKg: z.number().positive().optional(),
+  quantiteKg: z.coerce.number().positive().optional(),
   animalId: z.string().optional(),
   materielId: z.string().optional(),
   dateDebut: z.string().optional(),

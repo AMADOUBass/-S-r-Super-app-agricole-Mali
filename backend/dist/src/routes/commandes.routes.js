@@ -15,7 +15,7 @@ const zod_1 = require("zod");
 const router = (0, express_1.Router)();
 const schemaCommande = zod_1.z.object({
     produitId: zod_1.z.string().optional(),
-    quantiteKg: zod_1.z.number().positive().optional(),
+    quantiteKg: zod_1.z.coerce.number().positive().optional(),
     animalId: zod_1.z.string().optional(),
     materielId: zod_1.z.string().optional(),
     dateDebut: zod_1.z.string().optional(),

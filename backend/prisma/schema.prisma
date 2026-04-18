@@ -63,20 +63,27 @@ model Produit {
 
 model Commande {
   id             String         @id @default(cuid())
-  quantiteKg     Float
+  quantiteKg     Float?
   montantFcfa    Int
   commission     Int
+  caution        Int?
+  dateDebut      DateTime?
+  dateFin        DateTime?
   statut         StatutCommande @default(EN_ATTENTE)
   paiementRef    String?
   paiementStatut String?
   createdAt      DateTime       @default(now())
   updatedAt      DateTime       @updatedAt
-  produitId      String
+  produitId      String?
+  animalId       String?
+  materielId     String?
   acheteurId     String
   vendeurId      String
   avis           Avis?
   acheteur       Utilisateur    @relation("AcheteurCommandes", fields: [acheteurId], references: [id])
-  produit        Produit        @relation(fields: [produitId], references: [id])
+  produit        Produit?       @relation(fields: [produitId], references: [id])
+  animal         Animal?        @relation(fields: [animalId], references: [id])
+  materiel       Materiel?      @relation(fields: [materielId], references: [id])
   vendeur        Utilisateur    @relation("VendeurCommandes", fields: [vendeurId], references: [id])
 
   @@map("commandes")
@@ -97,6 +104,7 @@ model Materiel {
   proprietaireId String
   latitude       Float?
   longitude      Float?
+  commandes      Commande[]
   conversations  Conversation[]
   locations      Location[]
   proprietaire   Utilisateur    @relation(fields: [proprietaireId], references: [id])
@@ -145,6 +153,7 @@ model Animal {
   latitude      Float?
   longitude     Float?
   vendeur       Utilisateur    @relation(fields: [vendeurId], references: [id])
+  commandes     Commande[]
   conversations Conversation[]
 
   @@index([region, vendu])
