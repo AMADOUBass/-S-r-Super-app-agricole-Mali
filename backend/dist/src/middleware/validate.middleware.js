@@ -17,7 +17,6 @@ const valider = (schema) => {
                     champ: e.path.join('.'),
                     message: e.message,
                 }));
-                console.error('[validate] 400 body:', JSON.stringify(req.body), 'errors:', JSON.stringify(erreurs));
                 res.status(400).json({
                     success: false,
                     error: 'Données invalides',
