@@ -186,7 +186,7 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
       customer_phone_number: req.body.phoneNumber || commande.acheteur.telephone,
       network: req.body.network || 'orange',
       description: `Commande Sɔrô #${commande.id.slice(-8)}`,
-      return_url: `${process.env.FRONTEND_URL || 'https://soro.vercel.app'}/commandes/${commande.id}/statut`,
+      return_url: `${process.env.FRONTEND_PUBLIC_URL || 'https://soro.vercel.app'}/commandes/${commande.id}/statut`,
     });
     await prisma.commande.update({
       where: { id: commande.id },
@@ -194,6 +194,7 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
     });
     res.json({ success: true, payment_url: paiement.payment_url });
   } catch (err) {
+    console.error('[commandes/payer] Erreur détaillée:', err);
     res.status(500).json({ success: false, error: 'Erreur serveur' });
   }
 };

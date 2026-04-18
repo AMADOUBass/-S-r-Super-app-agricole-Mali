@@ -138,32 +138,40 @@ export const initierPaiement = async (params: {
     ...(IS_SANDBOX ? { 'X-Scenario-Key': 'scenario:auth_redirect' } : {}),
   };
 
-  const res = await axios.post(
-    `${API_BASE}/charges`,
-    {
-      reference: params.transaction_id,
-      currency: IS_SANDBOX ? 'GHS' : (params.currency || 'XOF'),
-      customer_id: customerId,
-      payment_method_id: paymentMethodId,
-      amount: params.amount,
-      redirect_url: params.return_url,
-      meta: { source: 'soro', description: params.description },
-    },
-    { headers: chargeHeaders }
-  );
-
-  const data = res.data?.data;
-  const paymentUrl =
-    data?.next_action?.redirect_url?.url ||
-    data?.redirect_url;
-
-  if (!paymentUrl) {
-    throw new Error(
-      `Flutterwave: URL de redirection introuvable — ${JSON.stringify(res.data)}`
+  try {
+    const res = await axios.post(
+      `${API_BASE}/charges`,
+      {
+        reference: params.transaction_id,
+        currency: IS_SANDBOX ? 'GHS' : (params.currency || 'XOF'),
+        customer_id: customerId,
+        payment_method_id: paymentMethodId,
+        amount: params.amount,
+        redirect_url: params.return_url,
+        meta: { source: 'soro', description: params.description },
+      },
+      { headers: chargeHeaders }
     );
-  }
 
-  return { payment_url: paymentUrl, transaction_id: params.transaction_id, charge_id: data.id };
+    const data = res.data?.data;
+    const paymentUrl =
+      data?.next_action?.redirect_url?.url ||
+      data?.redirect_url;
+
+    if (!paymentUrl) {
+      throw new Error(
+        `Flutterwave: URL de redirection introuvable — ${JSON.stringify(res.data)}`
+      );
+    }
+
+    return { payment_url: paymentUrl, transaction_id: params.transaction_id, charge_id: data.id };
+  } catch (err: any) {
+    if (err.response) {
+      console.error('[Flutterwave] Error Response:', JSON.stringify(err.response.data, null, 2));
+      throw new Error(`Flutterwave API Error: ${err.response.data.error?.message || err.message}`);
+    }
+    throw err;
+  }
 };
 
 // ─────────────────────────────────────────────────────────────
