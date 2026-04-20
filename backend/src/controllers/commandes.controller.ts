@@ -173,10 +173,23 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
       where: { id: req.params.id },
       include: { acheteur: true },
     });
-    if (!commande || commande.acheteurId !== req.user!.userId || commande.statut !== 'EN_ATTENTE') {
-      res.status(400).json({ success: false, error: 'Action impossible' });
+    if (!commande) {
+      res.status(404).json({ success: false, error: 'Commande introuvable' });
       return;
     }
+    if (commande.acheteurId !== req.user!.userId) {
+      res.status(403).json({ success: false, error: 'Accès refusé' });
+      return;
+    }
+    if (commande.statut === 'PAYE' || commande.statut === 'LIVRE') {
+      res.status(409).json({ success: false, error: 'Cette commande a déjà été payée' });
+      return;
+    }
+    if (commande.statut === 'ANNULE') {
+      res.status(409).json({ success: false, error: 'Cette commande est annulée' });
+      return;
+    }
+    // Autorise EN_ATTENTE et PAIEMENT_INITIE (retry si redirect Flutterwave abandonné)
     const montantTotal = commande.montantFcfa + commande.commission + (commande.caution || 0);
     const paiement = await initierPaiement({
       transaction_id: commande.id,
