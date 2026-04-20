@@ -207,7 +207,7 @@ export default function PageCommandes() {
                     {/* Contenu */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between gap-2">
-                        <Link href={`/commandes/${c.id}`} className="min-w-0 flex-1">
+                        <Link href={`/commandes/${c.id}/payer`} className="min-w-0 flex-1">
                           <p className="font-bold text-foreground text-[15px] truncate">
                             {typeLabel} · {c.quantiteKg} kg
                           </p>
