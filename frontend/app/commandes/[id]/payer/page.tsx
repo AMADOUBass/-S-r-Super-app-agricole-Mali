@@ -135,7 +135,12 @@ export default function PagePayerCommande() {
         phoneNumber: tel,
       });
       if (res.data?.payment_url) {
+        // Redirect (carte, sandbox)
         window.location.href = res.data.payment_url;
+      } else if (res.data?.polling) {
+        // Mobile Money : notification push sur le téléphone, pas de redirect
+        setCommande(c => c ? { ...c, statut: 'PAIEMENT_INITIE' } : c);
+        toast.success('Confirmez le paiement sur votre téléphone Mobile Money !', { duration: 8000 });
       } else {
         toast.error('Service de paiement indisponible temporairement.');
       }

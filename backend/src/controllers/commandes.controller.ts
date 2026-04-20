@@ -205,7 +205,12 @@ export const payerCommande = async (req: AuthRequest, res: Response): Promise<vo
       where: { id: commande.id },
       data: { statut: 'PAIEMENT_INITIE', paiementRef: paiement.charge_id },
     });
-    res.json({ success: true, payment_url: paiement.payment_url });
+    res.json({
+      success: true,
+      payment_url: paiement.payment_url,
+      // Mobile Money : pas de redirect, l'utilisateur confirme sur son téléphone
+      polling: !paiement.payment_url,
+    });
   } catch (err) {
     console.error('[commandes/payer] Erreur détaillée:', err);
     res.status(500).json({ success: false, error: 'Erreur serveur' });

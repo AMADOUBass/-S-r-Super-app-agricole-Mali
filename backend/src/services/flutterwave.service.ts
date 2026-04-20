@@ -114,7 +114,7 @@ export const initierPaiement = async (params: {
   network?: string;          // 'orange' (défaut) | 'moov'
   description: string;
   return_url: string;
-}): Promise<{ payment_url: string; transaction_id: string; charge_id: string }> => {
+}): Promise<{ payment_url: string | null; transaction_id: string; charge_id: string }> => {
   const token = await getAccessToken();
   const traceId = params.transaction_id.slice(-12);
 
@@ -154,15 +154,16 @@ export const initierPaiement = async (params: {
     );
 
     const data = res.data?.data;
-    const paymentUrl =
-      data?.next_action?.redirect_url?.url ||
-      data?.redirect_url;
 
-    if (!paymentUrl) {
-      throw new Error(
-        `Flutterwave: URL de redirection introuvable — ${JSON.stringify(res.data)}`
-      );
+    if (!data?.id) {
+      throw new Error(`Flutterwave: charge non créée — ${JSON.stringify(res.data)}`);
     }
+
+    // Mobile Money (Orange/Moov) : pas de redirect_url — notification USSD/push sur le téléphone
+    const paymentUrl: string | null =
+      data?.next_action?.redirect_url?.url ||
+      data?.redirect_url ||
+      null;
 
     return { payment_url: paymentUrl, transaction_id: params.transaction_id, charge_id: data.id };
   } catch (err: any) {
