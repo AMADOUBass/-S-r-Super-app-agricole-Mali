@@ -5,6 +5,7 @@ import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
+import crypto from 'crypto';
 import { envoyerSms } from '../services/sms.service';
 import { AuthRequest } from '../types';
 import { normaliserTelephone } from '../utils/auth.utils';
@@ -202,16 +203,22 @@ export const connexionAdmin = async (req: Request, res: Response): Promise<void>
       const envAdminEmail = process.env.ADMIN_EMAIL;
       const envAdminPassword = process.env.ADMIN_PASSWORD;
 
-      if (envAdminEmail && envAdminPassword && email === envAdminEmail && motDePasse === envAdminPassword) {
-        isValid = true;
-        adminData = {
-          id: 'admin-env',
-          nom: 'Administrateur (Env)',
-          email: envAdminEmail,
-          role: 'ADMIN',
-          region: 'BAMAKO',
-          commune: 'Bamako',
-        };
+      if (envAdminEmail && envAdminPassword && email === envAdminEmail) {
+        try {
+          const provided = Buffer.from(motDePasse);
+          const expected = Buffer.from(envAdminPassword);
+          if (provided.length === expected.length && crypto.timingSafeEqual(provided, expected)) {
+            isValid = true;
+            adminData = {
+              id: 'admin-env',
+              nom: 'Administrateur (Env)',
+              email: envAdminEmail,
+              role: 'ADMIN',
+              region: 'BAMAKO',
+              commune: 'Bamako',
+            };
+          }
+        } catch {}
       }
     }
 

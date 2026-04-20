@@ -20,6 +20,7 @@ import adminRoutes from './routes/admin.routes';
 import portefeuilleRoutes from './routes/portefeuille.routes';
 import messageRoutes from './routes/messages.routes';
 import avisRoutes from './routes/avis.routes';
+import locationsRoutes from './routes/locations.routes';
 
 const app = express();
 
@@ -61,6 +62,7 @@ app.use('/admin', adminRoutes);
 app.use('/portefeuille', portefeuilleRoutes);
 app.use('/conversations', messageRoutes);
 app.use('/avis', avisRoutes);
+app.use('/locations', locationsRoutes);
 
 // ─── Santé du serveur ─────────────────────────────────────────
 app.get('/health', (_req, res) => {

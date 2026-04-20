@@ -3,7 +3,7 @@ import prisma from '../lib/prisma';
 import { AuthRequest } from '../types';
 import { initierPaiement, verifierPaiement } from '../services/flutterwave.service';
 import { envoyerSms } from '../services/sms.service';
-import { portefeuilleService } from '../services/portefeuille.service';
+import { Prisma } from '@prisma/client';
 
 const COMMISSION_ACHETEUR = 0.03; // 3%
 const COMMISSION_LOCATION = 0.05; // 5%
@@ -18,94 +18,83 @@ export const creerCommande = async (req: AuthRequest, res: Response): Promise<vo
       return;
     }
 
-    let montantFcfa = 0;
-    let commission = 0;
-    let caution: number | undefined = undefined;
-    let vendeurId = '';
     let notificationMsg = '';
-    let itemType = '';
 
-    if (materielId) {
-      const materiel = await prisma.materiel.findUnique({
-        where: { id: materielId },
-        include: { proprietaire: true },
+    // Transaction atomique : validation + réservation + création en une seule opération
+    const commande = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      let montantFcfa = 0;
+      let commission = 0;
+      let caution: number | undefined = undefined;
+      let vendeurId = '';
+
+      if (materielId) {
+        const materiel = await tx.materiel.findUnique({
+          where: { id: materielId },
+          include: { proprietaire: true },
+        });
+        if (!materiel || !materiel.disponible) throw new Error('MATERIEL_INDISPONIBLE');
+        await tx.materiel.update({ where: { id: materielId }, data: { disponible: false } });
+
+        const debut = new Date(dateDebut);
+        const fin = new Date(dateFin);
+        const nbJours = Math.max(1, Math.ceil((fin.getTime() - debut.getTime()) / (1000 * 60 * 60 * 24)));
+        montantFcfa = nbJours * materiel.prixJour;
+        caution = materiel.caution;
+        commission = Math.round(montantFcfa * COMMISSION_LOCATION);
+        vendeurId = materiel.proprietaireId;
+        notificationMsg = `Sɔrô: Nouvelle location de ${materiel.type.toLowerCase()} par ${acheteur.nom}.`;
+
+      } else if (animalId) {
+        const animal = await tx.animal.findUnique({
+          where: { id: animalId },
+          include: { vendeur: true },
+        });
+        if (!animal || animal.vendu) throw new Error('ANIMAL_VENDU');
+        await tx.animal.update({ where: { id: animalId }, data: { vendu: true } });
+
+        montantFcfa = animal.prixFcfa;
+        commission = Math.round(montantFcfa * COMMISSION_ACHETEUR);
+        vendeurId = animal.vendeurId;
+        notificationMsg = `Sɔrô: Achat de votre ${animal.type.toLowerCase()} initié par ${acheteur.nom}.`;
+
+      } else if (produitId) {
+        const produit = await tx.produit.findUnique({
+          where: { id: produitId },
+          include: { agriculteur: true },
+        });
+        if (!produit || !produit.disponible) throw new Error('PRODUIT_INDISPONIBLE');
+        if (produit.quantiteKg < quantiteKg) throw new Error('STOCK_INSUFFISANT');
+
+        const nouvelleQuantite = produit.quantiteKg - quantiteKg;
+        await tx.produit.update({
+          where: { id: produitId },
+          data: { quantiteKg: { decrement: quantiteKg }, disponible: nouvelleQuantite > 0 },
+        });
+
+        montantFcfa = Math.round(produit.prixFcfa * quantiteKg);
+        commission = Math.round(montantFcfa * COMMISSION_ACHETEUR);
+        vendeurId = produit.agriculteurId;
+        notificationMsg = `Sɔrô: Commande de ${quantiteKg}kg de ${produit.type.toLowerCase()} par ${acheteur.nom}.`;
+      }
+
+      return tx.commande.create({
+        data: {
+          acheteurId: req.user!.userId,
+          vendeurId,
+          produitId,
+          animalId,
+          materielId,
+          quantiteKg: (animalId || materielId) ? null : quantiteKg,
+          dateDebut: materielId ? new Date(dateDebut) : null,
+          dateFin: materielId ? new Date(dateFin) : null,
+          montantFcfa,
+          commission,
+          caution,
+          statut: 'EN_ATTENTE',
+        },
+        include: { vendeur: { select: { telephone: true } } },
       });
-      if (!materiel || !materiel.disponible) {
-        res.status(404).json({ success: false, error: 'Matériel indisponible' });
-        return;
-      }
-      const debut = new Date(dateDebut);
-      const fin = new Date(dateFin);
-      const nbJours = Math.max(1, Math.ceil((fin.getTime() - debut.getTime()) / (1000 * 60 * 60 * 24)));
-      
-      montantFcfa = nbJours * materiel.prixJour;
-      caution = materiel.caution;
-      commission = Math.round(montantFcfa * COMMISSION_LOCATION);
-      vendeurId = materiel.proprietaireId;
-      itemType = materiel.type.toLowerCase();
-      notificationMsg = `Sɔrô: Nouvelle location de ${itemType} par ${acheteur.nom}.`;
-
-    } else if (animalId) {
-      const animal = await prisma.animal.findUnique({
-        where: { id: animalId },
-        include: { vendeur: true },
-      });
-      if (!animal || animal.vendu) {
-        res.status(404).json({ success: false, error: 'Animal vendu ou introuvable' });
-        return;
-      }
-      montantFcfa = animal.prixFcfa;
-      commission = Math.round(montantFcfa * COMMISSION_ACHETEUR);
-      vendeurId = animal.vendeurId;
-      itemType = animal.type.toLowerCase();
-      notificationMsg = `Sɔrô: Achat de votre ${itemType} initié par ${acheteur.nom}.`;
-
-    } else if (produitId) {
-      const produit = await prisma.produit.findUnique({
-        where: { id: produitId },
-        include: { agriculteur: true },
-      });
-      if (!produit || !produit.disponible) {
-        res.status(404).json({ success: false, error: 'Produit indisponible' });
-        return;
-      }
-      montantFcfa = Math.round(produit.prixFcfa * quantiteKg);
-      commission = Math.round(montantFcfa * COMMISSION_ACHETEUR);
-      vendeurId = produit.agriculteurId;
-      itemType = produit.type.toLowerCase();
-      notificationMsg = `Sɔrô: Commande de ${quantiteKg}kg de ${itemType} par ${acheteur.nom}.`;
-    }
-
-    const commande = await prisma.commande.create({
-      data: {
-        acheteurId: req.user!.userId,
-        vendeurId,
-        produitId,
-        animalId,
-        materielId,
-        quantiteKg: (animalId || materielId) ? null : quantiteKg,
-        dateDebut: materielId ? new Date(dateDebut) : null,
-        dateFin: materielId ? new Date(dateFin) : null,
-        montantFcfa,
-        commission,
-        caution,
-        statut: 'EN_ATTENTE',
-      },
-      include: {
-        vendeur: { select: { telephone: true } }
-      }
     });
-
-    if (animalId) {
-      await prisma.animal.update({ where: { id: animalId }, data: { vendu: true } });
-    } else if (materielId) {
-      await prisma.materiel.update({ where: { id: materielId }, data: { disponible: false } });
-    } else if (produitId) {
-      await prisma.produit.update({
-        where: { id: produitId },
-        data: { quantiteKg: { decrement: quantiteKg } }
-      });
-    }
 
     try {
       await envoyerSms({ to: commande.vendeur.telephone, message: notificationMsg });
@@ -114,9 +103,20 @@ export const creerCommande = async (req: AuthRequest, res: Response): Promise<vo
     }
 
     res.status(201).json({ success: true, data: commande });
-  } catch (err) {
-    console.error('[commandes/creer]', err);
-    res.status(500).json({ success: false, error: 'Erreur serveur' });
+  } catch (err: any) {
+    const errorsMap: Record<string, [number, string]> = {
+      MATERIEL_INDISPONIBLE: [409, 'Matériel indisponible'],
+      ANIMAL_VENDU: [409, 'Animal déjà vendu ou introuvable'],
+      PRODUIT_INDISPONIBLE: [409, 'Produit indisponible'],
+      STOCK_INSUFFISANT: [409, 'Stock insuffisant pour cette quantité'],
+    };
+    const mapped = errorsMap[err.message];
+    if (mapped) {
+      res.status(mapped[0]).json({ success: false, error: mapped[1] });
+    } else {
+      console.error('[commandes/creer]', err);
+      res.status(500).json({ success: false, error: 'Erreur serveur' });
+    }
   }
 };
 
@@ -223,23 +223,25 @@ export const confirmerLivraison = async (req: AuthRequest, res: Response): Promi
       res.status(403).json({ success: false, error: 'Action interdite' });
       return;
     }
-    await prisma.$transaction([
-      prisma.commande.update({ where: { id: commande.id }, data: { statut: 'LIVRE' } }),
-      prisma.portefeuille.upsert({
+    await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
+      await tx.commande.update({ where: { id: commande.id }, data: { statut: 'LIVRE' } });
+      const portefeuille = await tx.portefeuille.upsert({
         where: { utilisateurId: commande.vendeurId },
         update: { solde: { increment: commande.montantFcfa } },
         create: { utilisateurId: commande.vendeurId, solde: commande.montantFcfa },
-      }),
-      prisma.transactionPortefeuille.create({
+      });
+      await tx.transactionPortefeuille.create({
         data: {
-          portefeuilleId: (await portefeuilleService.getOrCreatePortefeuille(commande.vendeurId)).id,
+          portefeuilleId: portefeuille.id,
           montant: commande.montantFcfa,
           type: 'VENTE',
           referenceId: commande.id,
         },
-      }),
-    ]);
-    await envoyerSms({ to: commande.vendeur.telephone, message: `Sɔrô: Livraison confirmée par ${commande.acheteur.nom}.` });
+      });
+    });
+    try {
+      await envoyerSms({ to: commande.vendeur.telephone, message: `Sɔrô: Livraison confirmée par ${commande.acheteur.nom}.` });
+    } catch {}
     res.json({ success: true, message: 'Livraison confirmée' });
   } catch (err) {
     res.status(500).json({ success: false, error: 'Erreur serveur' });
@@ -289,11 +291,39 @@ export const webhookFlutterwave = async (req: Request, res: Response): Promise<v
     const { id: flwId, reference: tx_ref, status } = data;
     const paiementVerifie = await verifierPaiement(flwId);
     if (paiementVerifie.status === 'succeeded' && paiementVerifie.tx_ref === tx_ref) {
-      const commande = await prisma.commande.findUnique({ where: { id: tx_ref } });
-      if (commande) {
-        await prisma.commande.update({ where: { id: tx_ref }, data: { statut: 'PAYE', paiementStatut: status } });
-        const vendeur = await prisma.utilisateur.findUnique({ where: { id: commande.vendeurId } });
-        if (vendeur) await envoyerSms({ to: vendeur.telephone, message: `Sɔrô: Paiement reçu commande #${commande.id.slice(-8)}.` });
+      if (tx_ref.startsWith('loc_')) {
+        // Paiement d'une location
+        const locationId = tx_ref.slice(4);
+        const location = await prisma.location.findUnique({ where: { id: locationId } });
+        if (location && location.statut === 'EN_ATTENTE') {
+          await prisma.$transaction([
+            prisma.location.update({ where: { id: locationId }, data: { statut: 'CAUTION_BLOQUEE' } }),
+            prisma.materiel.update({ where: { id: location.materielId }, data: { disponible: false } }),
+          ]);
+          const proprietaire = await prisma.utilisateur.findFirst({
+            where: { materiels: { some: { id: location.materielId } } },
+          });
+          if (proprietaire?.telephone) {
+            try {
+              await envoyerSms({
+                to: proprietaire.telephone,
+                message: `Sɔrô: Paiement reçu — location #${locationId.slice(-8)}. Remettez le matériel au locataire.`,
+              });
+            } catch {}
+          }
+        }
+      } else {
+        // Paiement d'une commande
+        const commande = await prisma.commande.findUnique({ where: { id: tx_ref } });
+        if (commande && commande.statut === 'PAIEMENT_INITIE') {
+          await prisma.commande.update({ where: { id: tx_ref }, data: { statut: 'PAYE', paiementStatut: status } });
+          const vendeur = await prisma.utilisateur.findUnique({ where: { id: commande.vendeurId } });
+          if (vendeur?.telephone) {
+            try {
+              await envoyerSms({ to: vendeur.telephone, message: `Sɔrô: Paiement reçu commande #${commande.id.slice(-8)}.` });
+            } catch {}
+          }
+        }
       }
     }
     res.json({ message: 'OK' });

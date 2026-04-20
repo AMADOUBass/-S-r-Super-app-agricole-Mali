@@ -46,36 +46,26 @@ export const portefeuilleService = {
    * Enregistre une demande de retrait (débit immédiat du solde "virtuel", en attente de virement réel)
    */
   async initierRetrait(utilisateurId: string, montant: number, numeroPhone: string) {
-    const portefeuille = await this.getOrCreatePortefeuille(utilisateurId);
+    return await prisma.$transaction(async (tx) => {
+      // Lecture + validation à l'intérieur de la transaction pour éviter le double-retrait
+      const portefeuille = await tx.portefeuille.findUnique({ where: { utilisateurId } });
+      if (!portefeuille || portefeuille.solde < montant) {
+        throw new Error('Solde insuffisant pour ce retrait');
+      }
 
-    if (portefeuille.solde < montant) {
-      throw new Error('Solde insuffisant pour ce retrait');
-    }
-
-    return await prisma.$transaction([
-      // 1. On déduit du solde
-      prisma.portefeuille.update({
+      await tx.portefeuille.update({
         where: { id: portefeuille.id },
         data: { solde: { decrement: montant } },
-      }),
-      // 2. On trace la transaction de débit
-      prisma.transactionPortefeuille.create({
-        data: {
-          portefeuilleId: portefeuille.id,
-          montant: -montant,
-          type: 'RETRAIT',
-        },
-      }),
-      // 3. On crée la demande de retrait officielle
-      prisma.retrait.create({
-        data: {
-          utilisateurId,
-          montant,
-          numeroPhone,
-          statut: 'EN_ATTENTE',
-        },
-      }),
-    ]);
+      });
+
+      await tx.transactionPortefeuille.create({
+        data: { portefeuilleId: portefeuille.id, montant: -montant, type: 'RETRAIT' },
+      });
+
+      return tx.retrait.create({
+        data: { utilisateurId, montant, numeroPhone, statut: 'EN_ATTENTE' },
+      });
+    });
   },
 
   /**
