@@ -136,9 +136,35 @@ function VendreContent() {
     setPhotoPreview(URL.createObjectURL(file));
   };
 
+  const validerFormulaire = (): string | null => {
+    if (!form.type) return 'Veuillez sélectionner un type';
+    if (!form.commune.trim()) return 'Veuillez indiquer votre commune';
+
+    if (mode === 'HARVEST') {
+      const qte = parseFloat(form.quantiteKg);
+      const prix = parseInt(form.prixFcfa);
+      if (!form.quantiteKg || isNaN(qte) || qte <= 0) return 'La quantité doit être un nombre positif';
+      if (!form.prixFcfa || isNaN(prix) || prix <= 0) return 'Le prix par kg doit être un nombre positif';
+    } else if (mode === 'LIVESTOCK') {
+      const prix = parseInt(form.prixFcfa);
+      if (!form.prixFcfa || isNaN(prix) || prix <= 0) return 'Le prix doit être un nombre positif';
+      if (form.age && (isNaN(parseInt(form.age)) || parseInt(form.age) < 0)) return "L'âge doit être un nombre positif";
+      if (form.poidsKg && (isNaN(parseFloat(form.poidsKg)) || parseFloat(form.poidsKg) <= 0)) return 'Le poids doit être un nombre positif';
+    } else if (mode === 'EQUIPMENT') {
+      const prixJ = parseInt(form.prixJour);
+      const caution = parseInt(form.caution);
+      if (!form.prixJour || isNaN(prixJ) || prixJ <= 0) return 'Le prix par jour doit être un nombre positif';
+      if (!form.caution || isNaN(caution) || caution <= 0) return 'La caution doit être un nombre positif';
+    }
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!mode || !form.type) { setErreur(t('common.error')); return; }
+    if (!mode) return;
+
+    const erreurValidation = validerFormulaire();
+    if (erreurValidation) { setErreur(erreurValidation); return; }
 
     setChargement(true);
     setErreur('');

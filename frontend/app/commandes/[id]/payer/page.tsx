@@ -8,7 +8,7 @@ import useStore from '@/store/useStore';
 import {
   CheckCircle2, XCircle, Loader2, Phone, ShieldAlert, PackageCheck,
   ShieldCheck, Lock, ChevronRight, ArrowLeft, Smartphone, CreditCard,
-  Truck, HelpCircle
+  Truck, HelpCircle, PhoneCall
 } from 'lucide-react';
 
 interface Commande {
@@ -77,6 +77,7 @@ export default function PagePayerCommande() {
   const utilisateur = useStore(s => s.utilisateur);
 
   const [operateur, setOperateur] = useState('orange');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [commande, setCommande] = useState<Commande | null>(null);
   const [chargement, setChargement] = useState(true);
   const [paiementEnCours, setPaiementEnCours] = useState(false);
@@ -88,7 +89,6 @@ export default function PagePayerCommande() {
   const [erreur, setErreur] = useState('');
 
   useEffect(() => {
-    // On récupère la commande via la liste (ou un endpoint spécifique si disponible)
     api.get('/commandes/mes-commandes')
       .then(res => {
         const c = res.data.data?.find((x: Commande) => x.id === id);
@@ -97,6 +97,13 @@ export default function PagePayerCommande() {
       .catch(() => setCommande(null))
       .finally(() => setChargement(false));
   }, [id]);
+
+  // Pré-remplir le numéro avec celui du compte
+  useEffect(() => {
+    if (utilisateur?.telephone && !phoneNumber) {
+      setPhoneNumber(utilisateur.telephone);
+    }
+  }, [utilisateur]);
 
   // Polling si paiement en cours
   useEffect(() => {
@@ -117,9 +124,17 @@ export default function PagePayerCommande() {
 
   const initierPaiement = async () => {
     setErreur('');
+    const tel = phoneNumber.trim();
+    if (!tel) {
+      setErreur('Veuillez saisir votre numéro Mobile Money.');
+      return;
+    }
     setPaiementEnCours(true);
     try {
-      const res = await api.post(`/commandes/${id}/payer`, { network: operateur });
+      const res = await api.post(`/commandes/${id}/payer`, {
+        network: operateur,
+        phoneNumber: tel,
+      });
       if (res.data?.payment_url) {
         window.location.href = res.data.payment_url;
       } else {
@@ -293,10 +308,25 @@ export default function PagePayerCommande() {
                  ))}
               </div>
 
+              {/* Numéro Mobile Money */}
+              <div className="space-y-1.5">
+                 <label className="text-xs font-black uppercase tracking-widest text-muted-fg flex items-center gap-1.5">
+                    <PhoneCall size={12} /> Numéro Mobile Money
+                 </label>
+                 <input
+                    type="tel"
+                    value={phoneNumber}
+                    onChange={e => setPhoneNumber(e.target.value)}
+                    placeholder="+223 XX XX XX XX"
+                    className="w-full border-2 border-border rounded-xl px-4 py-3 font-bold text-sm focus:border-primary-500 outline-none transition-colors"
+                 />
+                 <p className="text-[10px] text-muted-fg">Numéro sur lequel sera débité le paiement</p>
+              </div>
+
               <div className="flex items-start gap-2.5 p-3 bg-primary-50 rounded-xl border border-primary-100">
                  <ShieldAlert size={16} className="text-primary-600 mt-0.5 flex-shrink-0" />
                  <p className="text-[11px] font-bold text-primary-800 leading-relaxed">
-                    Votre paiement sera bloqué de manière sécurisée par Sɔrô. 
+                    Votre paiement sera bloqué de manière sécurisée par Sɔrô.
                     Le vendeur ne sera payé que lorsque vous aurez confirmé la livraison.
                  </p>
               </div>

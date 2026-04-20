@@ -101,6 +101,14 @@ export function MaterielDetailClient({ materiel }: { materiel: Materiel }) {
 
   const louer = async () => {
     if (!token) { router.push('/connexion'); return; }
+
+    const debut = new Date(dateDebut);
+    const fin = new Date(dateFin);
+    if (fin <= debut) {
+      setErreur('La date de fin doit être après la date de début');
+      return;
+    }
+
     setChargement(true);
     setErreur('');
     try {
