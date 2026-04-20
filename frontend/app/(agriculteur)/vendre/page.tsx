@@ -7,14 +7,14 @@ import { api } from '@/lib/api';
 import useStore from '@/store/useStore';
 import { useTranslation } from '@/lib/i18n';
 import { LanguageSwitcher } from '@/components/ui/LanguageSwitcher';
-import { 
-  Plus, 
-  MapPin, 
-  Camera, 
-  Check, 
-  Loader2, 
-  AlertCircle, 
-  ChevronRight, 
+import toast from 'react-hot-toast';
+import {
+  Plus,
+  MapPin,
+  Camera,
+  Check,
+  Loader2,
+  ChevronRight,
   ArrowLeft,
   Info
 } from 'lucide-react';
@@ -98,7 +98,6 @@ function VendreContent() {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [chargement, setChargement] = useState(false);
-  const [erreur, setErreur] = useState('');
   const [prixMarche, setPrixMarche] = useState<number | null>(null);
   const [geolocating, setGeolocating] = useState(false);
 
@@ -164,10 +163,9 @@ function VendreContent() {
     if (!mode) return;
 
     const erreurValidation = validerFormulaire();
-    if (erreurValidation) { setErreur(erreurValidation); return; }
+    if (erreurValidation) { toast.error(erreurValidation); return; }
 
     setChargement(true);
-    setErreur('');
 
     try {
       const formData = new FormData();
@@ -177,7 +175,6 @@ function VendreContent() {
         if (v !== '') formData.append(k, String(v));
       });
 
-      // Nettoyage spécifique selon mode
       if (mode === 'HARVEST') {
         formData.set('quantiteKg', String(parseFloat(form.quantiteKg)));
         formData.set('prixFcfa', String(parseInt(form.prixFcfa)));
@@ -192,13 +189,12 @@ function VendreContent() {
 
       if (photo) formData.append('photo', photo);
 
-      await api.post(endpoint, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      await api.post(endpoint, formData, { headers: { 'Content-Type': 'multipart/form-data' } });
 
+      toast.success('Annonce publiée avec succès !');
       router.push('/tableau-bord');
     } catch (err: any) {
-      setErreur(err.response?.data?.error || t('common.error'));
+      toast.error(err.response?.data?.error || t('common.error'));
     } finally {
       setChargement(false);
     }
@@ -517,13 +513,6 @@ function VendreContent() {
               />
             </div>
           </section>
-
-          {erreur && (
-            <div className="flex items-center gap-3 bg-rose-50 border border-rose-100 rounded-2xl px-5 py-4 text-rose-700 text-sm font-black uppercase tracking-wide animate-in shake-in">
-              <AlertCircle size={18} />
-              {erreur}
-            </div>
-          )}
 
           <button
             type="submit"

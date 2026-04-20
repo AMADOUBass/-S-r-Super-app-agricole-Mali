@@ -10,6 +10,7 @@ import {
   ShieldCheck, Lock, ChevronRight, ArrowLeft, Smartphone, CreditCard,
   Truck, HelpCircle, PhoneCall
 } from 'lucide-react';
+import toast from 'react-hot-toast';
 
 interface Commande {
   id: string;
@@ -86,7 +87,6 @@ export default function PagePayerCommande() {
   const [confirmerAnnulation, setConfirmerAnnulation] = useState(false);
   const [confirmerLivraison, setConfirmerLivraison] = useState(false);
   const [actionEnCours, setActionEnCours] = useState(false);
-  const [erreur, setErreur] = useState('');
 
   useEffect(() => {
     api.get('/commandes/mes-commandes')
@@ -123,10 +123,9 @@ export default function PagePayerCommande() {
   }, [commande?.statut, id]);
 
   const initierPaiement = async () => {
-    setErreur('');
     const tel = phoneNumber.trim();
     if (!tel) {
-      setErreur('Veuillez saisir votre numéro Mobile Money.');
+      toast.error('Veuillez saisir votre numéro Mobile Money.');
       return;
     }
     setPaiementEnCours(true);
@@ -138,10 +137,10 @@ export default function PagePayerCommande() {
       if (res.data?.payment_url) {
         window.location.href = res.data.payment_url;
       } else {
-        setErreur('Service de paiement indisponible temporairement.');
+        toast.error('Service de paiement indisponible temporairement.');
       }
     } catch (err: any) {
-      setErreur(err.response?.data?.error || 'Erreur lors de l\'initiation du paiement.');
+      toast.error(err.response?.data?.error || "Erreur lors de l'initiation du paiement.");
     } finally {
       setPaiementEnCours(false);
     }
@@ -153,7 +152,7 @@ export default function PagePayerCommande() {
       await api.post(`/commandes/${id}/annuler`);
       router.push('/tableau-bord');
     } catch {
-      setErreur('Erreur lors de l\'annulation.');
+      toast.error("Erreur lors de l'annulation.");
       setConfirmerAnnulation(false);
     } finally {
       setActionEnCours(false);
@@ -167,7 +166,7 @@ export default function PagePayerCommande() {
       setCommande(c => c ? { ...c, statut: 'LIVRE' } : c);
       setConfirmerLivraison(false);
     } catch {
-      setErreur('Erreur lors de la confirmation.');
+      toast.error('Erreur lors de la confirmation.');
     } finally {
       setActionEnCours(false);
     }
@@ -336,12 +335,6 @@ export default function PagePayerCommande() {
         {/* Actions Contextuelles */}
         <div className="pt-2 space-y-4">
            
-           {erreur && (
-              <div className="flex items-center gap-2 bg-red-50 text-red-700 p-4 rounded-xl text-xs font-bold border border-red-100 animate-fade-up">
-                <XCircle size={16} /> {erreur}
-              </div>
-           )}
-
            {commande.statut === 'EN_ATTENTE' && !confirmerAnnulation && (
               <button
                 onClick={initierPaiement}

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Header } from '@/components/layout/Header';
 import { api } from '@/lib/api';
+import toast from 'react-hot-toast';
 
 const TYPES = [
   { value: 'MOUTON',   label: 'Mouton',   emoji: '🐑' },
@@ -36,40 +37,49 @@ export default function PagePublierAnimal() {
     longitude: '' as string | number,
   });
   const [chargement, setChargement] = useState(false);
-  const [erreur, setErreur] = useState('');
   const [geolocating, setGeolocating] = useState(false);
 
   const handleGeolocation = () => {
     if (!navigator.geolocation) {
-      setErreur("La géolocalisation n'est pas supportée par votre navigateur");
+      toast.error("La géolocalisation n'est pas supportée par votre navigateur");
       return;
     }
 
     setGeolocating(true);
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        setForm(f => ({ 
-          ...f, 
-          latitude: pos.coords.latitude, 
-          longitude: pos.coords.longitude 
+        setForm(f => ({
+          ...f,
+          latitude: pos.coords.latitude,
+          longitude: pos.coords.longitude
         }));
         setGeolocating(false);
       },
       (err) => {
         console.error(err);
-        setErreur("Impossible de récupérer votre position. Assurez-vous d'avoir activé le GPS.");
+        toast.error("Impossible de récupérer votre position. Assurez-vous d'avoir activé le GPS.");
         setGeolocating(false);
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
+  const validerFormulaire = (): string | null => {
+    if (!form.type) return "Choisissez le type d'animal";
+    if (!form.commune.trim()) return 'Veuillez indiquer votre commune';
+    const prix = parseInt(form.prixFcfa);
+    if (!form.prixFcfa || isNaN(prix) || prix <= 0) return 'Le prix doit être un nombre positif';
+    if (form.age && (isNaN(parseInt(form.age)) || parseInt(form.age) < 0)) return "L'âge doit être un nombre positif";
+    if (form.poidsKg && (isNaN(parseFloat(form.poidsKg)) || parseFloat(form.poidsKg) <= 0)) return 'Le poids doit être un nombre positif';
+    return null;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.type) { setErreur('Choisissez le type d\'animal'); return; }
+    const erreur = validerFormulaire();
+    if (erreur) { toast.error(erreur); return; }
 
     setChargement(true);
-    setErreur('');
     try {
       await api.post('/elevage', {
         type: form.type,
@@ -83,10 +93,11 @@ export default function PagePublierAnimal() {
         latitude: form.latitude !== '' ? Number(form.latitude) : undefined,
         longitude: form.longitude !== '' ? Number(form.longitude) : undefined,
       });
+      toast.success('Annonce publiée avec succès !');
       router.push('/elevage');
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
-      setErreur(error.response?.data?.error || 'Erreur lors de la publication');
+      toast.error(error.response?.data?.error || 'Erreur lors de la publication');
     } finally {
       setChargement(false);
     }
@@ -104,7 +115,7 @@ export default function PagePublierAnimal() {
             <div className="mb-6">
               <h2 className="text-2xl font-black text-foreground tracking-tight">1. Quel animal ?</h2>
             </div>
-            
+
             <div className="card-glass p-5">
               <div className="grid grid-cols-3 gap-3">
                 {TYPES.map(t => (
@@ -243,12 +254,6 @@ export default function PagePublierAnimal() {
             </div>
           </section>
 
-          {erreur && (
-            <div className="bg-red-50 text-red-700 p-4 rounded-2xl text-xs font-bold border border-red-100 animate-shake">
-              ⚠️ {erreur}
-            </div>
-          )}
-
           <button
             type="submit"
             disabled={chargement}
@@ -259,7 +264,7 @@ export default function PagePublierAnimal() {
             ) : (
               <>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
-                Publier l'annonce
+                Publier l&apos;annonce
               </>
             )}
           </button>

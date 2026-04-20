@@ -8,11 +8,12 @@ import { useState } from 'react';
 import useStore from '@/store/useStore';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import {
-  MapPin, Package, CheckCircle2, XCircle, Phone, Loader2,
+  MapPin, Package, XCircle, Loader2,
   ShoppingCart, Minus, Plus, Lock, ChevronRight, MessageSquare, Star, ShieldCheck
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
 import { SORO_BLUR_PLACEHOLDER } from '@/lib/image-utils';
+import toast from 'react-hot-toast';
 
 const EMOJI: Record<string, string> = {
   MIL: '🌾', SORGHO: '🌾', MAIS: '🌽', RIZ: '🍚', ARACHIDE: '🥜',
@@ -65,19 +66,17 @@ export function ProduitDetailClient({ produit }: { produit: Produit }) {
   const utilisateur = useStore(s => s.utilisateur);
   const [quantite, setQuantite] = useState(1);
   const [chargement, setChargement] = useState(false);
-  const [erreur, setErreur] = useState('');
   const [photoOpen, setPhotoOpen] = useState(false);
 
   const commander = async () => {
     if (!token) { router.push('/connexion'); return; }
     setChargement(true);
-    setErreur('');
     try {
       const res = await api.post('/commandes', { produitId: produit.id, quantiteKg: quantite });
       router.push(`/commandes/${res.data.data.id}/payer`);
     } catch (err: unknown) {
       const error = err as { response?: { data?: { error?: string } } };
-      setErreur(error.response?.data?.error || 'Erreur lors de la commande. Réessayez.');
+      toast.error(error.response?.data?.error || 'Erreur lors de la commande. Réessayez.');
     } finally {
       setChargement(false);
     }
@@ -90,7 +89,7 @@ export function ProduitDetailClient({ produit }: { produit: Produit }) {
       const res = await api.post('/conversations', { produitId: produit.id });
       router.push(`/messages/${res.data.data.id}`);
     } catch {
-      setErreur('Impossible de démarrer la discussion');
+      toast.error('Impossible de démarrer la discussion');
     } finally {
       setChargement(false);
     }
@@ -406,12 +405,6 @@ export function ProduitDetailClient({ produit }: { produit: Produit }) {
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="max-w-xl mx-auto p-4">
            <div className="bg-white/90 backdrop-blur-2xl border border-white/50 shadow-[0_-15px_40px_rgba(0,0,0,0.12)] rounded-[2.5rem] p-4 flex flex-col gap-3">
-              {erreur && (
-                <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-2xl text-xs font-bold border border-red-100 flex-shrink-0">
-                  <XCircle size={16} /> {erreur}
-                </div>
-              )}
-              
               {peutCommander ? (
                 <div className="flex flex-col gap-3">
                    <button

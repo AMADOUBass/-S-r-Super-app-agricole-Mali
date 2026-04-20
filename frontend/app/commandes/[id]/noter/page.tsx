@@ -9,6 +9,7 @@ import { useTranslation } from '@/lib/i18n';
 import { useCreateAvis } from '@/lib/queries';
 import { api } from '@/lib/api';
 import { useQuery } from '@tanstack/react-query';
+import toast from 'react-hot-toast';
 
 export default function PageNoterVendeur() {
   const { id } = useParams();
@@ -31,6 +32,10 @@ export default function PageNoterVendeur() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commande) return;
+    if (commentaire.length > 500) {
+      toast.error('Le commentaire ne peut pas dépasser 500 caractères');
+      return;
+    }
 
     createAvis.mutate({
       note,
@@ -39,8 +44,12 @@ export default function PageNoterVendeur() {
       commandeId: id as string,
     }, {
       onSuccess: () => {
+        toast.success('Avis envoyé avec succès !');
         router.push('/commandes');
-      }
+      },
+      onError: (err: any) => {
+        toast.error(err?.response?.data?.error || "Erreur lors de l'envoi de l'avis");
+      },
     });
   };
 

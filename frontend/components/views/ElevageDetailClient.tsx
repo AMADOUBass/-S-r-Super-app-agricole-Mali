@@ -7,12 +7,13 @@ import { Header } from '@/components/layout/Header';
 import useStore from '@/store/useStore';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import {
-  MapPin, Phone, Loader2, MessageSquare, ChevronRight, Star,
-  XCircle, CheckCircle2, ShieldCheck, Scale, Calendar
+  MapPin, Loader2, MessageSquare, ChevronRight, Star,
+  CheckCircle2, ShieldCheck, Scale, Calendar
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n';
 import { SORO_BLUR_PLACEHOLDER } from '@/lib/image-utils';
+import toast from 'react-hot-toast';
 
 const EMOJI: Record<string, string> = {
   BOEUF: '🐄', MOUTON: '🐑', CHEVRE: '🐐',
@@ -59,7 +60,6 @@ export function ElevageDetailClient({ animal }: { animal: Animal }) {
   const token = useStore(s => s.token);
   const [photoOpen, setPhotoOpen] = useState(false);
   const [chargement, setChargement] = useState(false);
-  const [erreur, setErreur] = useState('');
   const [succes, setSucces] = useState(false);
 
   const typeLabel = animal.type.charAt(0) + animal.type.slice(1).toLowerCase();
@@ -82,14 +82,12 @@ export function ElevageDetailClient({ animal }: { animal: Animal }) {
   const commander = async () => {
     if (!token) { router.push('/connexion'); return; }
     setChargement(true);
-    setErreur('');
     try {
-      // Pour le bétail, on utilise maintenant le système unified de commandes
       const res = await api.post('/commandes', { animalId: animal.id });
       setSucces(true);
       setTimeout(() => router.push(`/commandes/${res.data.data.id}/payer`), 1500);
     } catch (err: any) {
-      setErreur(err.response?.data?.error || 'Erreur lors de l\'achat. Réessayez.');
+      toast.error(err.response?.data?.error || "Erreur lors de l'achat. Réessayez.");
     } finally {
       setChargement(false);
     }
@@ -101,7 +99,7 @@ export function ElevageDetailClient({ animal }: { animal: Animal }) {
       const res = await api.post('/conversations', { animalId: animal.id });
       router.push(`/messages/${res.data.data.id}`);
     } catch {
-      setErreur('Impossible de démarrer la discussion');
+      toast.error('Impossible de démarrer la discussion');
     }
   };
 
@@ -294,11 +292,6 @@ export function ElevageDetailClient({ animal }: { animal: Animal }) {
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="max-w-xl mx-auto p-4">
            <div className="bg-white/90 backdrop-blur-2xl border border-white/50 shadow-[0_-15px_40px_rgba(0,0,0,0.12)] rounded-[2.5rem] p-4 flex flex-col gap-3">
-              {erreur && (
-                <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-2xl text-xs font-bold border border-red-100 flex-shrink-0">
-                  <XCircle size={16} /> {erreur}
-                </div>
-              )}
               {succes && (
                 <div className="flex items-center gap-2 bg-primary-50 text-primary-700 px-4 py-3 rounded-2xl text-xs font-bold border border-primary-100 flex-shrink-0">
                    <CheckCircle2 size={16} /> Redirection...

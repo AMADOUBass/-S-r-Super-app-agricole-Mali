@@ -7,12 +7,13 @@ import { Header } from '@/components/layout/Header';
 import useStore from '@/store/useStore';
 import { ImageLightbox } from '@/components/ui/ImageLightbox';
 import {
-  MapPin, Phone, Loader2, MessageSquare, ChevronRight, Star,
-  XCircle, CheckCircle2, ShieldCheck, Calendar
+  MapPin, Loader2, MessageSquare, ChevronRight, Star,
+  CheckCircle2, ShieldCheck, Calendar
 } from 'lucide-react';
 import { api } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n';
 import { SORO_BLUR_PLACEHOLDER } from '@/lib/image-utils';
+import toast from 'react-hot-toast';
 
 const EMOJI: Record<string, string> = {
   TRACTEUR: '🚜', MOTOCULTEUR: '🚜', SEMOIR: '⚙️',
@@ -63,7 +64,6 @@ export function MaterielDetailClient({ materiel }: { materiel: Materiel }) {
   
   const [photoOpen, setPhotoOpen] = useState(false);
   const [chargement, setChargement] = useState(false);
-  const [erreur, setErreur] = useState('');
   const [succes, setSucces] = useState(false);
   
   // Gestion des dates
@@ -105,14 +105,13 @@ export function MaterielDetailClient({ materiel }: { materiel: Materiel }) {
     const debut = new Date(dateDebut);
     const fin = new Date(dateFin);
     if (fin <= debut) {
-      setErreur('La date de fin doit être après la date de début');
+      toast.error('La date de fin doit être après la date de début');
       return;
     }
 
     setChargement(true);
-    setErreur('');
     try {
-      const res = await api.post('/commandes', { 
+      const res = await api.post('/commandes', {
         materielId: materiel.id,
         dateDebut,
         dateFin
@@ -120,7 +119,7 @@ export function MaterielDetailClient({ materiel }: { materiel: Materiel }) {
       setSucces(true);
       setTimeout(() => router.push(`/commandes/${res.data.data.id}/payer`), 1500);
     } catch (err: any) {
-      setErreur(err.response?.data?.error || 'Erreur lors de la réservation.');
+      toast.error(err.response?.data?.error || 'Erreur lors de la réservation.');
     } finally {
       setChargement(false);
     }
@@ -132,7 +131,7 @@ export function MaterielDetailClient({ materiel }: { materiel: Materiel }) {
       const res = await api.post('/conversations', { materielId: materiel.id });
       router.push(`/messages/${res.data.data.id}`);
     } catch {
-      setErreur('Impossible de discuter avec le propriétaire');
+      toast.error('Impossible de discuter avec le propriétaire');
     }
   };
 
@@ -349,11 +348,6 @@ export function MaterielDetailClient({ materiel }: { materiel: Materiel }) {
       <div className="fixed bottom-0 left-0 right-0 z-50">
         <div className="max-w-xl mx-auto p-4">
            <div className="bg-white/90 backdrop-blur-2xl border border-white/50 shadow-[0_-15px_40px_rgba(0,0,0,0.12)] rounded-[2.5rem] p-4 flex flex-col gap-3">
-              {erreur && (
-                <div className="flex items-center gap-2 bg-red-50 text-red-700 px-4 py-3 rounded-2xl text-xs font-bold border border-red-100 flex-shrink-0">
-                  <XCircle size={16} /> {erreur}
-                </div>
-              )}
               {succes && (
                 <div className="flex items-center gap-2 bg-primary-50 text-primary-700 px-4 py-3 rounded-2xl text-xs font-bold border border-primary-100 flex-shrink-0">
                   <CheckCircle2 size={16} /> Confirmation en cours...
