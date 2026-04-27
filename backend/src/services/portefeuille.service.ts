@@ -46,7 +46,7 @@ export const portefeuilleService = {
    * Enregistre une demande de retrait (débit immédiat du solde "virtuel", en attente de virement réel)
    */
   async initierRetrait(utilisateurId: string, montant: number, numeroPhone: string) {
-    return await prisma.$transaction(async (tx) => {
+    return await prisma.$transaction(async (tx: import('@prisma/client').Prisma.TransactionClient) => {
       // Lecture + validation à l'intérieur de la transaction pour éviter le double-retrait
       const portefeuille = await tx.portefeuille.findUnique({ where: { utilisateurId } });
       if (!portefeuille || portefeuille.solde < montant) {
